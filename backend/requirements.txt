@@ -10,6 +10,7 @@ passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 python-multipart==0.0.9
 email-validator==2.2.0
+tzdata==2024.2  # base de fusos para zoneinfo (ausente no Windows e em imagens slim)
 
 # Qualidade de código
 black==24.8.0
