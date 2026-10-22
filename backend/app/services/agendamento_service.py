@@ -49,7 +49,10 @@ def create_appointment(db: Session, payload: AgendamentoCreate) -> Agendamento:
     if pet is None:
         raise NotFoundError(f"Pet '{payload.pet_id}' não encontrado.")
 
-    profissional = profissional_repository.get_by_id(db, payload.profissional_id)
+    # Trava a linha do profissional até o commit: requisições simultâneas
+    # para o mesmo profissional são serializadas e a checagem da RN-02
+    # abaixo sempre enxerga os agendamentos já gravados (M04).
+    profissional = profissional_repository.get_by_id_for_update(db, payload.profissional_id)
     if profissional is None:
         raise NotFoundError(f"Profissional '{payload.profissional_id}' não encontrado.")
 
