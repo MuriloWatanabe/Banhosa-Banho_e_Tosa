@@ -38,9 +38,22 @@ class Settings(BaseSettings):
         "Consulta veterinária": 30,
     }
 
+    # Papel do profissional exigido por cada serviço (ex.: um Tosador não
+    # pode atender uma "Consulta veterinária").
+    SERVICE_REQUIRED_ROLES: dict[str, str] = {
+        "Banho": "Tosador",
+        "Banho + Tosa": "Tosador",
+        "Tosa higiênica": "Tosador",
+        "Consulta veterinária": "Veterinário",
+    }
+
     # Horário de funcionamento (usado para validar agendamentos)
     BUSINESS_START_HOUR: int = 8
     BUSINESS_END_HOUR: int = 19
+
+    # Fuso horário do pet shop — referência para "data/horário no passado",
+    # independente do fuso do servidor/container (geralmente UTC).
+    TIMEZONE: str = "America/Sao_Paulo"
 
 
 @lru_cache

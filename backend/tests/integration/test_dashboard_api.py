@@ -12,7 +12,9 @@ das métricas (cards de totais) e a listagem dos próximos atendimentos do dia.
   a data atual (`date.today()`), refletindo o foco operacional diário do sistema.
 """
 
-from datetime import date
+from datetime import date, datetime, time
+
+from app.services import agendamento_service
 
 # ==============================================================================
 # UTILS & FIXTURES LOCAIS
@@ -52,7 +54,11 @@ def _create_professional(client, headers, name="Ana Tosadora", active=True):
 # SUÍTE DE TESTES
 # ==============================================================================
 
-def test_dashboard_counts_active_resources_and_today_appointments(client, auth_headers):
+def test_dashboard_counts_active_resources_and_today_appointments(client, auth_headers, monkeypatch):
+    # 0. Congela o "agora" no início do dia: o agendamento das 09:00 de hoje
+    # não pode ser rejeitado como "no passado" (M02) conforme a hora da execução.
+    monkeypatch.setattr(agendamento_service, "_now", lambda: datetime.combine(date.today(), time(0, 0)))
+
     # 1. Arrange (Cadastra as entidades no banco, incluindo um profissional INATIVO)
     tutor = _create_tutor(client, auth_headers)
     pet = _create_pet(client, auth_headers, tutor["id"])
