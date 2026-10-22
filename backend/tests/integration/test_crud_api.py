@@ -11,7 +11,11 @@ entidades base do sistema. Valida persistência, integridade relacional e segura
 - REGRAS DE NEGÓCIO (Unicidade): Atributos críticos, como o e-mail do Tutor, 
   são validados contra duplicidade no banco de dados.
 - SEGURANÇA: Todos os endpoints de manipulação e leitura exigem token de acesso (JWT).
+- VÍNCULOS (M03): Excluir tutor, pet ou profissional com agendamentos retorna 409
+  com mensagem clara, em vez de estourar a FK (ON DELETE RESTRICT) como erro 500.
 """
+
+from datetime import date, timedelta
 
 # ==============================================================================
 # UTILS & FIXTURES LOCAIS
@@ -165,3 +169,59 @@ def test_invalid_pet_and_professional_payloads_are_rejected(client, auth_headers
 
     assert invalid_pet.status_code == 422
     assert invalid_professional.status_code == 422
+
+
+# ==============================================================================
+# SUÍTE DE TESTES: EXCLUSÃO COM VÍNCULOS (M03)
+# ==============================================================================
+
+def _create_linked_appointment(client, headers):
+    """Cria tutor -> pet -> profissional -> agendamento e devolve os registros."""
+    tutor = client.post("/api/v1/tutores", json=tutor_payload(), headers=headers).json()
+    pet = client.post("/api/v1/pets", json=pet_payload(tutor["id"]), headers=headers).json()
+    professional = client.post("/api/v1/profissionais", json=professional_payload(), headers=headers).json()
+    appointment = client.post(
+        "/api/v1/agendamentos",
+        json={
+            "pet_id": pet["id"],
+            "profissional_id": professional["id"],
+            "service": "Banho",
+            "date": (date.today() + timedelta(days=30)).isoformat(),
+            "start_time": "09:00:00",
+        },
+        headers=headers,
+    )
+    assert appointment.status_code == 201
+    return tutor, pet, professional, appointment.json()
+
+
+def test_deleting_resources_with_appointments_returns_409(client, auth_headers):
+    tutor, pet, professional, _ = _create_linked_appointment(client, auth_headers)
+
+    for route, resource_id in (
+        ("tutores", tutor["id"]),
+        ("pets", pet["id"]),
+        ("profissionais", professional["id"]),
+    ):
+        response = client.delete(f"/api/v1/{route}/{resource_id}", headers=auth_headers)
+        assert response.status_code == 409
+        assert "agendamentos vinculados" in response.json()["detail"]
+
+    # Nada foi removido
+    assert len(client.get("/api/v1/tutores", headers=auth_headers).json()) == 1
+    assert len(client.get("/api/v1/pets", headers=auth_headers).json()) == 1
+    assert len(client.get("/api/v1/profissionais", headers=auth_headers).json()) == 1
+
+
+def test_resources_can_be_deleted_after_their_appointments(client, auth_headers):
+    tutor, pet, professional, appointment = _create_linked_appointment(client, auth_headers)
+
+    client.delete(f"/api/v1/agendamentos/{appointment['id']}", headers=auth_headers)
+
+    deleted_professional = client.delete(f"/api/v1/profissionais/{professional['id']}", headers=auth_headers)
+    deleted_tutor = client.delete(f"/api/v1/tutores/{tutor['id']}", headers=auth_headers)
+
+    assert deleted_professional.status_code == 204
+    assert deleted_tutor.status_code == 204
+    # O pet foi removido em cascata junto com o tutor
+    assert client.get("/api/v1/pets", headers=auth_headers).json() == []

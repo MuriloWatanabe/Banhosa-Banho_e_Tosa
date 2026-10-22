@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import NotFoundError, ValidationError
+from app.core.exceptions import ConflictError, NotFoundError, ValidationError
 from app.models.tutor import Tutor
-from app.repositories import tutor_repository
+from app.repositories import agendamento_repository, tutor_repository
 from app.schemas.tutor import TutorCreate
 
 
@@ -21,4 +21,11 @@ def delete_tutor(db: Session, tutor_id: str) -> None:
     tutor = tutor_repository.get_by_id(db, tutor_id)
     if tutor is None:
         raise NotFoundError(f"Tutor '{tutor_id}' não encontrado.")
+    # Excluir o tutor remove os pets em cascata; agendamentos desses pets
+    # bloqueiam a exclusão (FK RESTRICT) e precisam ser preservados como histórico.
+    if agendamento_repository.exists_for_tutor(db, tutor.id):
+        raise ConflictError(
+            "Não é possível excluir o tutor: existem agendamentos vinculados aos seus pets. "
+            "Exclua esses agendamentos antes de remover o tutor."
+        )
     tutor_repository.delete(db, tutor)

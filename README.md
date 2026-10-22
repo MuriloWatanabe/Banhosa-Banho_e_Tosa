@@ -108,6 +108,8 @@ banho_tosa/
 | DELETE   | `/api/v1/agendamentos/{id}`  | Remover Agendamentos         |
 
 > Todas as rotas acima (exceto `/auth/login`) exigem `Authorization: Bearer <token>`.
+>
+> - Excluir tutor, pet ou profissional que possua agendamentos retorna **409** — para preservar o histórico, prefira inativar o profissional.
 
 ### Endpoints Principais Front-end
 
