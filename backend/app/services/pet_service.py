@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import ConflictError, NotFoundError
 from app.models.pet import Pet
-from app.repositories import pet_repository, tutor_repository
+from app.repositories import agendamento_repository, pet_repository, tutor_repository
 from app.schemas.pet import PetCreate
 
 
@@ -29,4 +29,9 @@ def delete_pet(db: Session, pet_id: str) -> None:
     pet = pet_repository.get_by_id(db, pet_id)
     if pet is None:
         raise NotFoundError(f"Pet '{pet_id}' não encontrado.")
+    if agendamento_repository.exists_for_pet(db, pet.id):
+        raise ConflictError(
+            "Não é possível excluir o pet: existem agendamentos vinculados a ele. "
+            "Exclua esses agendamentos antes de remover o pet."
+        )
     pet_repository.delete(db, pet)

@@ -1,6 +1,6 @@
 from datetime import date as date_type
 
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.agendamento import Agendamento
@@ -55,6 +55,19 @@ def list_by_professional_and_date(
 def get_by_id(db: Session, agendamento_id: str) -> Agendamento | None:
     stmt = select(Agendamento).options(*_EAGER).where(Agendamento.id == agendamento_id)
     return db.scalars(stmt).first()
+
+
+def exists_for_pet(db: Session, pet_id: str) -> bool:
+    return bool(db.scalar(select(exists().where(Agendamento.pet_id == pet_id))))
+
+
+def exists_for_professional(db: Session, profissional_id: str) -> bool:
+    return bool(db.scalar(select(exists().where(Agendamento.profissional_id == profissional_id))))
+
+
+def exists_for_tutor(db: Session, tutor_id: str) -> bool:
+    stmt = select(exists().where(Agendamento.pet_id == Pet.id, Pet.tutor_id == tutor_id))
+    return bool(db.scalar(stmt))
 
 
 def create(db: Session, agendamento: Agendamento) -> Agendamento:
