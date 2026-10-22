@@ -1,10 +1,15 @@
 from datetime import date as date_type
 
 from sqlalchemy import exists, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
+from app.core.exceptions import ConflictError
 from app.models.agendamento import Agendamento
 from app.models.pet import Pet
+
+# SQLSTATE do PostgreSQL para violação de constraint de exclusão (EXCLUDE).
+_EXCLUSION_VIOLATION = "23P01"
 
 _EAGER = (
     # pet + pet.tutor aninhado (usado por AgendamentoRead.tutorName/petName)
@@ -70,9 +75,24 @@ def exists_for_tutor(db: Session, tutor_id: str) -> bool:
     return bool(db.scalar(stmt))
 
 
+def _commit_or_conflict(db: Session) -> None:
+    """Traduz a violação da constraint de exclusão (RN-02 no banco) para
+    ConflictError — cobre a corrida em que duas requisições passam pela
+    checagem em memória ao mesmo tempo."""
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        if getattr(exc.orig, "pgcode", None) == _EXCLUSION_VIOLATION:
+            raise ConflictError(
+                "Conflito de horário: o profissional já possui um agendamento nesse intervalo."
+            ) from exc
+        raise
+
+
 def create(db: Session, agendamento: Agendamento) -> Agendamento:
     db.add(agendamento)
-    db.commit()
+    _commit_or_conflict(db)
     db.refresh(agendamento)
     return agendamento
 
