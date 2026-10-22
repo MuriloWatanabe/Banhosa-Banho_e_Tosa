@@ -21,6 +21,12 @@ def create(db: Session, pet: Pet) -> Pet:
     return pet
 
 
+def update(db: Session, pet: Pet) -> Pet:
+    db.commit()
+    db.refresh(pet)
+    return pet
+
+
 def delete(db: Session, pet: Pet) -> None:
     db.delete(pet)
     db.commit()

@@ -97,6 +97,12 @@ def create(db: Session, agendamento: Agendamento) -> Agendamento:
     return agendamento
 
 
+def update(db: Session, agendamento: Agendamento) -> Agendamento:
+    _commit_or_conflict(db)
+    db.refresh(agendamento)
+    return agendamento
+
+
 def delete(db: Session, agendamento: Agendamento) -> None:
     db.delete(agendamento)
     db.commit()
