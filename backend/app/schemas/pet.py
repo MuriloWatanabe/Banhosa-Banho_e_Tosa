@@ -14,6 +14,10 @@ class PetCreate(PetBase):
     tutor_id: str = Field(..., description="ID do tutor responsável pelo pet")
 
 
+class PetUpdate(PetCreate):
+    pass
+
+
 class PetRead(PetBase):
     model_config = ConfigDict(from_attributes=True)
 

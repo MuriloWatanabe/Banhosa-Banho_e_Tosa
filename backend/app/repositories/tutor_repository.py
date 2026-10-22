@@ -26,6 +26,12 @@ def create(db: Session, tutor: Tutor) -> Tutor:
     return tutor
 
 
+def update(db: Session, tutor: Tutor) -> Tutor:
+    db.commit()
+    db.refresh(tutor)
+    return tutor
+
+
 def delete(db: Session, tutor: Tutor) -> None:
     db.delete(tutor)
     db.commit()

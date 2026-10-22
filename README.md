@@ -94,22 +94,24 @@ banho_tosa/
 
 ### Endpoints Principais Back-end
 
-| Método   | Rota                         | Descrição                    |
-| -------- | ---------------------------- | ---------------------------- |
-| POST     | `/api/v1/auth/login`         | Login (Retorna JWT)          |
-| GET      | `/api/v1/dashboard`          | Totais + Agendamentos do Dia |
-| GET/POST | `/api/v1/tutores`            | Listar e Criar Tutores       |
-| DELETE   | `/api/v1/tutores/{id}`       | Remover Tutorores            |
-| GET/POST | `/api/v1/pets`               | Listar e Criar Pets          |
-| DELETE   | `/api/v1/pets/{id}`          | Remover Pets                 |
-| GET/POST | `/api/v1/profissionais`      | Listar e Criar Profissionais |
-| DELETE   | `/api/v1/profissionais/{id}` | Remover Profissionais        |
-| GET/POST | `/api/v1/agendamentos`       | Listar e Criar Agendamentos  |
-| DELETE   | `/api/v1/agendamentos/{id}`  | Remover Agendamentos         |
+| Método     | Rota                                | Descrição                                          |
+| ---------- | ----------------------------------- | -------------------------------------------------- |
+| POST       | `/api/v1/auth/login`                | Login (Retorna JWT)                                |
+| GET        | `/api/v1/dashboard`                 | Totais + Agendamentos do Dia                       |
+| GET/POST   | `/api/v1/tutores`                   | Listar e Criar Tutores                             |
+| PUT/DELETE | `/api/v1/tutores/{id}`              | Editar e Remover Tutores                           |
+| GET/POST   | `/api/v1/pets`                      | Listar e Criar Pets                                |
+| PUT/DELETE | `/api/v1/pets/{id}`                 | Editar e Remover Pets                              |
+| GET/POST   | `/api/v1/profissionais`             | Listar e Criar Profissionais                       |
+| PUT/DELETE | `/api/v1/profissionais/{id}`        | Editar (inclusive inativar) e Remover Profissionais |
+| GET/POST   | `/api/v1/agendamentos`              | Listar e Criar Agendamentos                        |
+| PUT/DELETE | `/api/v1/agendamentos/{id}`         | Remarcar e Remover Agendamentos                    |
+| PATCH      | `/api/v1/agendamentos/{id}/status`  | Confirmar, Concluir ou Cancelar um Agendamento     |
 
 > Todas as rotas acima (exceto `/auth/login`) exigem `Authorization: Bearer <token>`.
 >
 > - Excluir tutor, pet ou profissional que possua agendamentos retorna **409** — para preservar o histórico, prefira inativar o profissional.
+> - Transições de status permitidas: `Pendente → Confirmado | Concluído | Cancelado` e `Confirmado → Concluído | Cancelado`. `Concluído` e `Cancelado` são finais (o agendamento deixa de ser editável).
 
 ### Endpoints Principais Front-end
 

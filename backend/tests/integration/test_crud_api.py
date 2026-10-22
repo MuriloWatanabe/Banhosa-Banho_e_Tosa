@@ -172,6 +172,82 @@ def test_invalid_pet_and_professional_payloads_are_rejected(client, auth_headers
 
 
 # ==============================================================================
+# SUÍTE DE TESTES: EDIÇÃO (M05)
+# ==============================================================================
+
+def test_tutor_can_be_updated_and_email_must_stay_unique(client, auth_headers):
+    tutor = client.post("/api/v1/tutores", json=tutor_payload(), headers=auth_headers).json()
+    client.post("/api/v1/tutores", json=tutor_payload("joao@example.com"), headers=auth_headers)
+
+    # Manter o próprio e-mail é permitido
+    updated = client.put(
+        f"/api/v1/tutores/{tutor['id']}",
+        json={"name": "Maria Souza", "phone": "47988887777", "email": "maria@example.com"},
+        headers=auth_headers,
+    )
+    # Assumir o e-mail de outro tutor não é
+    duplicated = client.put(
+        f"/api/v1/tutores/{tutor['id']}",
+        json={"name": "Maria Souza", "phone": "47988887777", "email": "joao@example.com"},
+        headers=auth_headers,
+    )
+
+    assert updated.status_code == 200
+    assert updated.json()["name"] == "Maria Souza"
+    assert updated.json()["phone"] == "47988887777"
+    assert duplicated.status_code == 422
+
+
+def test_pet_can_be_updated_and_moved_to_another_tutor(client, auth_headers):
+    maria = client.post("/api/v1/tutores", json=tutor_payload(), headers=auth_headers).json()
+    joao_payload = {**tutor_payload("joao@example.com"), "name": "João Lima"}
+    joao = client.post("/api/v1/tutores", json=joao_payload, headers=auth_headers).json()
+    pet = client.post("/api/v1/pets", json=pet_payload(maria["id"]), headers=auth_headers).json()
+
+    response = client.put(
+        f"/api/v1/pets/{pet['id']}",
+        json={**pet_payload(joao["id"]), "name": "Thor II", "size": "Médio"},
+        headers=auth_headers,
+    )
+    missing_tutor = client.put(
+        f"/api/v1/pets/{pet['id']}", json=pet_payload("tutor-inexistente"), headers=auth_headers
+    )
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Thor II"
+    assert response.json()["size"] == "Médio"
+    assert response.json()["tutorName"] == "João Lima"
+    assert missing_tutor.status_code == 404
+
+
+def test_professional_can_be_updated_and_deactivated(client, auth_headers):
+    professional = client.post(
+        "/api/v1/profissionais", json=professional_payload(), headers=auth_headers
+    ).json()
+
+    response = client.put(
+        f"/api/v1/profissionais/{professional['id']}",
+        json={**professional_payload(active=False), "specialty": "Tosa na tesoura"},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["active"] is False
+    assert response.json()["specialty"] == "Tosa na tesoura"
+
+
+def test_update_missing_resources_returns_not_found(client, auth_headers):
+    payloads = {
+        "tutores": tutor_payload(),
+        "pets": pet_payload("tutor-id"),
+        "profissionais": professional_payload(),
+    }
+    for route, payload in payloads.items():
+        response = client.put(f"/api/v1/{route}/id-inexistente", json=payload, headers=auth_headers)
+        assert response.status_code == 404
+
+
+# ==============================================================================
 # SUÍTE DE TESTES: EXCLUSÃO COM VÍNCULOS (M03)
 # ==============================================================================
 

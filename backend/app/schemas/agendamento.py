@@ -17,6 +17,22 @@ class AgendamentoCreate(BaseModel):
     status: StatusAgendamento = StatusAgendamento.PENDENTE
 
 
+class AgendamentoUpdate(BaseModel):
+    """Payload de edição/remarcação. Passa pelas mesmas validações da
+    criação (RN-01, RN-02, M02). O status muda apenas pelo endpoint
+    dedicado (PATCH /agendamentos/{id}/status), preservando o histórico."""
+
+    pet_id: str
+    profissional_id: str
+    service: str = Field(min_length=1, max_length=60)
+    date: date_type
+    start_time: time_type
+
+
+class AgendamentoStatusUpdate(BaseModel):
+    status: StatusAgendamento
+
+
 class AgendamentoRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

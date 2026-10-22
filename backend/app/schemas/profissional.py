@@ -14,6 +14,10 @@ class ProfissionalCreate(ProfissionalBase):
     pass
 
 
+class ProfissionalUpdate(ProfissionalBase):
+    pass
+
+
 class ProfissionalRead(ProfissionalBase):
     model_config = ConfigDict(from_attributes=True)
 

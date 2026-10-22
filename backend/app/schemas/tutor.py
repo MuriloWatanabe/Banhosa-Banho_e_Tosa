@@ -11,6 +11,10 @@ class TutorCreate(TutorBase):
     pass
 
 
+class TutorUpdate(TutorBase):
+    pass
+
+
 class TutorRead(TutorBase):
     model_config = ConfigDict(from_attributes=True)
 

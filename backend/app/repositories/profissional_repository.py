@@ -30,6 +30,12 @@ def create(db: Session, profissional: Profissional) -> Profissional:
     return profissional
 
 
+def update(db: Session, profissional: Profissional) -> Profissional:
+    db.commit()
+    db.refresh(profissional)
+    return profissional
+
+
 def delete(db: Session, profissional: Profissional) -> None:
     db.delete(profissional)
     db.commit()
