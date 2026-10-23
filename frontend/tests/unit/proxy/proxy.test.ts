@@ -8,8 +8,8 @@
  * @type {Teste de Unidade / Middleware}
  * 
  * @notes
- * - SEGURANÇA: Hoje é a única barreira de autenticação (o backend ainda não valida).
- *   Bugs aqui representam vulnerabilidades de acesso direto, não apenas de UX.
+ * - SEGURANÇA: O proxy só confere a PRESENÇA do cookie `banhosa_token` (JWT httpOnly).
+ *   A validação da assinatura/expiração acontece no backend, a cada chamada à API.
  * - AMBIENTE: Utilizamos `@vitest-environment node` (definido acima) pois 
  *   NextRequest/NextResponse baseiam-se em Web APIs disponíveis nativamente no Node, 
  *   não havendo necessidade de renderização DOM (jsdom).
@@ -29,7 +29,7 @@ import { proxy } from '@/proxy';
  */
 function buildRequest(pathname: string, { authenticated = false } = {}) {
     const url = `http://localhost:3000${pathname}`;
-    const headers = authenticated ? { cookie: 'banhosa_auth=1' } : undefined;
+    const headers = authenticated ? { cookie: 'banhosa_token=header.payload.signature' } : undefined;
     return new NextRequest(url, { headers });
 }
 
@@ -94,10 +94,10 @@ describe('Middleware | proxy (Proteção de Rotas)', () => {
         expect(location.searchParams.get('from')).toBe('/pets/novo');
     });
 
-    it('deve redirecionar para /login se o cookie for diferente de "1" (sessão corrompida/inválida)', () => {
+    it('deve redirecionar para /login se o cookie do token estiver vazio', () => {
         // 1. Arrange
         const request = new NextRequest('http://localhost:3000/tutores', {
-            headers: { cookie: 'banhosa_auth=0' },
+            headers: { cookie: 'banhosa_token=' },
         });
         
         // 2. Act
@@ -106,5 +106,17 @@ describe('Middleware | proxy (Proteção de Rotas)', () => {
         // 3. Assert
         expect(response.status).toBe(307);
         expect(new URL(response.headers.get('location') ?? '').pathname).toBe('/login');
+    });
+});
+
+describe('Middleware | proxy (Cookie legado)', () => {
+    it('deve ignorar o antigo cookie "banhosa_auth" do modo demonstração', () => {
+        const request = new NextRequest('http://localhost:3000/agendamentos', {
+            headers: { cookie: 'banhosa_auth=1' },
+        });
+
+        const response = proxy(request);
+
+        expect(response.status).toBe(307);
     });
 });

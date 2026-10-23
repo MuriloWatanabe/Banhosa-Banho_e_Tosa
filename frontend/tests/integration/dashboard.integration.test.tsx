@@ -1,54 +1,73 @@
 /**
  * @file Integração: Dashboard e API Service
- * @description Garante a correta integração e montagem dos dados entre a camada 
- * de serviços (services/api) e a interface do DashboardPage.
- * 
+ * @description Garante a correta integração entre a camada de serviços (services/api.ts)
+ * e a interface do DashboardPage.
+ *
  * @type {Teste de Integração}
- * 
+ *
  * @notes
- * - Os testes não utilizam mocks para a API; eles exercitam o serviço em memória real.
- * - ARQUITETURA FUTURA: Quando o FastAPI for introduzido, substituir a importação 
- *   em memória pela API real ou por um mock de HTTP (ex: MSW), mantendo estes 
- *   mesmos cenários de teste (Ref: QA_README.md).
+ * - O `services/api.ts` REAL é exercitado: só a borda de rede (`fetch`) e o cookie da
+ *   requisição (`next/headers`) são simulados. Assim validamos URL, header de
+ *   autenticação e o mapeamento da resposta do FastAPI até a tela.
  */
 
-import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import DashboardPage from '@/app/(dashboard)/dashboard/page';
+import type { DashboardData } from '@/types';
 
 // =============================================================================
-// SETUP & UTILS
+// SETUP & MOCKS
 // =============================================================================
 
-/**
- * Reseta os módulos antes de cada teste para evitar vazamento de estado.
- * Como o `services/api.ts` guarda dados em memória no escopo do módulo,
- * isso garante que cada teste inicie com o "banco de dados" vazio.
- */
+vi.mock('next/headers', () => ({
+	cookies: async () => ({
+		get: (name: string) => (name === 'banhosa_token' ? { name, value: 'jwt-de-teste' } : undefined),
+	}),
+}));
+
+const fetchMock = vi.fn();
+
+function mockDashboardResponse(data: DashboardData) {
+	fetchMock.mockResolvedValue(new Response(JSON.stringify(data), { status: 200 }));
+}
 
 beforeEach(() => {
-	vi.resetModules();
+	fetchMock.mockReset();
+	vi.stubGlobal('fetch', fetchMock);
 });
 
-async function loadFreshModules() {
-	const api = await import('@/services/api');
-	const { default: DashboardPage } = await import('@/app/(dashboard)/dashboard/page');
-	return { api, DashboardPage };
-}
+afterEach(() => {
+	vi.unstubAllGlobals();
+});
 
 // =============================================================================
 // SUÍTE DE TESTES
 // =============================================================================
 
-describe('Integração: Dashboard exibindo dados reais do serviço em memória', () => {
-	it('exibe todos os totais zerados e a mensagem de agenda vazia quando não há nenhum dado', async () => {
-		// 1. Arrange (Preparação)
-		const { DashboardPage } = await loadFreshModules();
+describe('Integração: Dashboard exibindo dados da API', () => {
+	it('chama GET /api/v1/dashboard enviando o JWT do cookie', async () => {
+		mockDashboardResponse({
+			totals: { appointmentsToday: 0, activeClients: 0, pets: 0, professionals: 0 },
+			appointments: [],
+		});
 
-		// 2. Act (Ação)
-    	// Chamamos a função diretamente pois DashboardPage é um Server Component.
 		render(await DashboardPage());
 
-		// 3. Assert (Asserção)
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+		const [url, init] = fetchMock.mock.calls[0];
+		expect(String(url)).toMatch(/\/api\/v1\/dashboard$/);
+		expect(init.headers).toMatchObject({ Authorization: 'Bearer jwt-de-teste' });
+	});
+
+	it('exibe todos os totais zerados e a mensagem de agenda vazia quando não há nenhum dado', async () => {
+		mockDashboardResponse({
+			totals: { appointmentsToday: 0, activeClients: 0, pets: 0, professionals: 0 },
+			appointments: [],
+		});
+
+		render(await DashboardPage());
+
 		expect(screen.getByText('Agendamentos hoje').closest('.stat-card')).toHaveTextContent('0');
 		expect(screen.getByText('Tutores ativos').closest('.stat-card')).toHaveTextContent('0');
 		expect(screen.getByText('Pets cadastrados').closest('.stat-card')).toHaveTextContent('0');
@@ -56,61 +75,44 @@ describe('Integração: Dashboard exibindo dados reais do serviço em memória',
 		expect(screen.getByText('Nenhum agendamento para hoje.')).toBeInTheDocument();
 	});
 
-	it('reflete tutores, pets, profissionais ativos e o agendamento de hoje cadastrados via services/api', async () => {
-		// 1. Arrange (Preparação)
-		const { api, DashboardPage } = await loadFreshModules();
-		const today = new Date().toISOString().slice(0, 10);
-
-		await api.createTutor({ name: 'Ana Souza', phone: '11 90000-0000', email: 'ana@email.com' });
-
-		await api.createPet({
-			name: 'Mel',
-			species: 'Gato',
-			breed: 'SRD',
-			size: 'Pequeno',
-			tutorName: 'Ana Souza',
+	it('reflete os totais e os agendamentos do dia devolvidos pela API', async () => {
+		mockDashboardResponse({
+			totals: { appointmentsToday: 1, activeClients: 1, pets: 1, professionals: 1 },
+			appointments: [
+				{
+					id: 'a-1',
+					petId: 'p-1',
+					professionalId: 'prof-1',
+					petName: 'Mel',
+					tutorName: 'Ana Souza',
+					service: 'Banho',
+					size: 'Pequeno',
+					professionalName: 'Carla Dias',
+					date: new Date().toISOString().slice(0, 10),
+					startTime: '09:00:00',
+					durationMinutes: 60,
+					status: 'Pendente',
+				},
+			],
 		});
 
-		const professional = await api.createProfessional({
-			name: 'Carla Dias',
-			role: 'Tosador',
-			specialty: 'Tosa na tesoura',
-			active: true, // Profissional Ativo
-		});
-		
-		await api.createProfessional({
-			name: 'Diego Melo',
-			role: 'Tosador',
-			specialty: 'Banho',
-			active: false, // Profissional Inativo (não deve ser contabilizado)
-		});
-
-
-		await api.createAppointment({
-			petName: 'Mel',
-			tutorName: 'Ana Souza',
-			service: 'Banho',
-			size: 'Pequeno',
-			professionalName: professional.name,
-			date: today,
-			startTime: '09:00',
-			durationMinutes: 60,
-			status: 'Pendente',
-		});
-
-		// 2. Act (Ação)
 		render(await DashboardPage());
 
-		// 3. Assert (Asserção)
-    	// Valida os cards de estatísticas
 		expect(screen.getByText('Agendamentos hoje').closest('.stat-card')).toHaveTextContent('1');
 		expect(screen.getByText('Tutores ativos').closest('.stat-card')).toHaveTextContent('1');
 		expect(screen.getByText('Pets cadastrados').closest('.stat-card')).toHaveTextContent('1');
-		expect(screen.getByText('Profissionais').closest('.stat-card')).toHaveTextContent('1'); // Apenas o ativo
+		expect(screen.getByText('Profissionais').closest('.stat-card')).toHaveTextContent('1');
 
-		// Valida a tabela de próximos atendimentos
 		expect(screen.getByText('Mel')).toBeInTheDocument();
 		expect(screen.getByText('09:00')).toBeInTheDocument();
 		expect(screen.queryByText('Nenhum agendamento para hoje.')).not.toBeInTheDocument();
+	});
+
+	it('propaga o erro da API (ex.: token expirado) em vez de renderizar dados vazios', async () => {
+		fetchMock.mockResolvedValue(
+			new Response(JSON.stringify({ detail: 'Token inválido ou expirado.' }), { status: 401 })
+		);
+
+		await expect(DashboardPage()).rejects.toThrow('Token inválido ou expirado.');
 	});
 });

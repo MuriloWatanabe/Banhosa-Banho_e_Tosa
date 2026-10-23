@@ -37,6 +37,9 @@ class AgendamentoRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
+    # IDs de referência: permitem ao frontend pré-preencher a tela de edição.
+    petId: str = Field(validation_alias="pet_id", serialization_alias="petId")
+    professionalId: str = Field(validation_alias="profissional_id", serialization_alias="professionalId")
     petName: str = Field(validation_alias="pet_name", serialization_alias="petName")
     tutorName: str = Field(validation_alias="tutor_name", serialization_alias="tutorName")
     service: str

@@ -1,5 +1,6 @@
 export type PetSize = 'Pequeno' | 'Médio' | 'Grande' | 'Gigante';
-export type AppointmentStatus = 'Confirmado' | 'Pendente' | 'Concluído' | 'Cancelado';
+export const APPOINTMENT_STATUSES = ['Pendente', 'Confirmado', 'Concluído', 'Cancelado'] as const;
+export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number];
 
 export interface Tutor {
   id: string;
@@ -28,6 +29,8 @@ export interface Professional {
 
 export interface Appointment {
   id: string;
+  petId: string;
+  professionalId: string;
   petName: string;
   tutorName: string;
   service: string;
@@ -79,6 +82,10 @@ export interface AppointmentCreateInput {
   start_time: string;
   status?: AppointmentStatus;
 }
+
+// Remarcação (PUT /agendamentos/{id}). O status não vai aqui: ele só muda
+// pelo endpoint dedicado (PATCH /agendamentos/{id}/status).
+export type AppointmentUpdateInput = Omit<AppointmentCreateInput, 'status'>;
 
 export interface DashboardData {
   totals: {

@@ -107,6 +107,9 @@ def test_create_appointment_calculates_rn01_duration_on_server(client, auth_head
     
     # Banho = 60min base; porte Grande dobra (RN-01) => 120min
     assert body["durationMinutes"] == 120
+    # IDs de referência usados pelo frontend para pré-preencher a edição
+    assert body["petId"] == pet["id"]
+    assert body["professionalId"] == professional["id"]
 
 
 def test_overlapping_appointment_is_rejected_with_409(client, auth_headers):

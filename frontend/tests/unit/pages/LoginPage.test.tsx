@@ -6,11 +6,9 @@
  * @type {Teste de Componente / UI}
  * 
  * @notes
- * - DEBT TÉCNICO (Modo Demonstração): As credenciais validadas aqui (banhosa.adm / banhosa123) 
- *   estão hardcoded temporariamente no código-fonte.
- * - ARQUITETURA FUTURA: Quando a autenticação real via FastAPI for implementada, 
- *   estes testes deverão ser reescritos (ou deletados) para validar a chamada real de rede 
- *   à API (Ref: QA_README.md, seção "Plano para integração com o backend").
+ * - A autenticação real é feita pela Server Action `loginAction` (POST /auth/login no
+ *   FastAPI), que grava o JWT num cookie httpOnly. Aqui ela é mockada: o teste cobre só
+ *   o comportamento da tela (erro, loading e redirecionamento).
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest';
@@ -22,15 +20,26 @@ import LoginPage from '@/app/login/page';
 // SETUP & MOCKS
 // =============================================================================
 
-const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }));
-
-/**
- * Mock do roteador do Next.js (next/navigation).
- * Intercepta chamadas de redirecionamento (push) para validarmos o fluxo após o login.
- */
-vi.mock('next/navigation', () => ({
-    useRouter: () => ({ push: pushMock }),
+const { pushMock, refreshMock, loginActionMock } = vi.hoisted(() => ({
+    pushMock: vi.fn(),
+    refreshMock: vi.fn(),
+    loginActionMock: vi.fn(),
 }));
+
+vi.mock('next/navigation', () => ({
+    useRouter: () => ({ push: pushMock, refresh: refreshMock }),
+}));
+
+vi.mock('@/app/actions', () => ({
+    loginAction: loginActionMock,
+}));
+
+/** Simula o backend: só aceita as credenciais do seed. */
+function fakeLogin(username: string, password: string) {
+    return Promise.resolve(
+        username === 'banhosa.adm' && password === 'banhosa123' ? {} : { error: 'Usuário ou senha incorretos.' }
+    );
+}
 
 // =============================================================================
 // SUÍTE DE TESTES
@@ -40,9 +49,9 @@ describe('UI | LoginPage', () => {
     
     beforeEach(() => {
         pushMock.mockClear();
-        // Limpeza de estado isolado: 
-        // Evita que o cookie setado por um teste de sucesso "vaze" para o próximo.
-        document.cookie = 'banhosa_auth=; path=/; max-age=0';
+        refreshMock.mockClear();
+        loginActionMock.mockReset();
+        loginActionMock.mockImplementation(fakeLogin);
     });
 
     it('deve renderizar os campos de usuário e senha', () => {
@@ -67,10 +76,9 @@ describe('UI | LoginPage', () => {
         // 3. Assert
         expect(await screen.findByText('Usuário ou senha incorretos.')).toBeInTheDocument();
         expect(pushMock).not.toHaveBeenCalled();
-        expect(document.cookie).not.toContain('banhosa_auth=1');
     });
 
-    it('deve definir o cookie de sessão e redirecionar para /dashboard com credenciais corretas', async () => {
+    it('deve autenticar via Server Action e redirecionar para /dashboard com credenciais corretas', async () => {
         // 1. Arrange
         const user = userEvent.setup();
         render(<LoginPage />);
@@ -81,7 +89,7 @@ describe('UI | LoginPage', () => {
         await user.click(screen.getByRole('button', { name: 'Entrar' }));
 
         // 3. Assert
-        expect(document.cookie).toContain('banhosa_auth=1');
+        expect(loginActionMock).toHaveBeenCalledWith('banhosa.adm', 'banhosa123');
         expect(pushMock).toHaveBeenCalledWith('/dashboard');
         expect(screen.queryByText('Usuário ou senha incorretos.')).not.toBeInTheDocument();
     });

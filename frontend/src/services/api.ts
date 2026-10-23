@@ -2,6 +2,8 @@ import { cookies } from 'next/headers';
 import {
   Appointment,
   AppointmentCreateInput,
+  AppointmentStatus,
+  AppointmentUpdateInput,
   DashboardData,
   Pet,
   PetCreateInput,
@@ -108,6 +110,12 @@ export async function getAppointments(): Promise<Appointment[]> {
   return apiFetch<Appointment[]>('/agendamentos');
 }
 
+export async function getAppointment(id: string): Promise<Appointment | undefined> {
+  // A API não expõe GET /agendamentos/{id}; buscamos na listagem.
+  const appointments = await getAppointments();
+  return appointments.find((item) => item.id === id);
+}
+
 // --- Criação --------------------------------------------------------------
 
 export async function createTutor(input: TutorCreateInput): Promise<Tutor> {
@@ -126,6 +134,18 @@ export async function createAppointment(input: AppointmentCreateInput): Promise<
   // A duração (RN-01) e a disponibilidade (RN-02) são sempre calculadas e
   // validadas no backend — o frontend só envia a intenção do agendamento.
   return apiFetch<Appointment>('/agendamentos', { method: 'POST', body: JSON.stringify(input) });
+}
+
+// --- Edição ------------------------------------------------------------------
+
+export async function updateAppointment(id: string, input: AppointmentUpdateInput): Promise<Appointment> {
+  // Remarcação passa pelas mesmas validações da criação no backend (RN-01, RN-02).
+  return apiFetch<Appointment>(`/agendamentos/${id}`, { method: 'PUT', body: JSON.stringify(input) });
+}
+
+export async function changeAppointmentStatus(id: string, status: AppointmentStatus): Promise<Appointment> {
+  // As transições permitidas são decididas pelo backend.
+  return apiFetch<Appointment>(`/agendamentos/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
 }
 
 // --- Remoção ----------------------------------------------------------------

@@ -17,7 +17,9 @@ export function Topbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const title = titles[pathname] ?? 'Banhosa Baso';
+  // Sub-rotas (ex.: /agendamentos/[id]/editar) herdam o título da seção.
+  const section = Object.keys(titles).find((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  const title = section ? titles[section] : 'Banhosa Baso';
 
   function logout() {
     // O cookie do JWT é httpOnly (não pode ser apagado via document.cookie),

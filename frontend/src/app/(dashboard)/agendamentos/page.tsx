@@ -3,6 +3,7 @@ import { getAppointments } from '@/services/api';
 import { Icon } from '@/components/Icon';
 import { DeleteButton } from '@/components/DeleteButton';
 import { deleteAppointmentAction } from '@/app/actions';
+import { formatDate, formatDuration, statusPillColor, toTimeInputValue } from '@/utils/appointment';
 
 export default async function AgendamentosPage() {
   const items = await getAppointments();
@@ -15,14 +16,14 @@ export default async function AgendamentosPage() {
       <div className="table-wrap"><table>
         <thead><tr><th>Data</th><th>Horário</th><th>Pet / Tutor</th><th>Serviço</th><th>Profissional</th><th>Duração</th><th>Status</th><th></th></tr></thead>
         <tbody>{items.map((a) => <tr key={a.id}>
-          <td>{a.date.split('-').reverse().join('/')}</td>
-          <td>{a.startTime}</td>
+          <td>{formatDate(a.date)}</td>
+          <td>{toTimeInputValue(a.startTime)}</td>
           <td><strong>{a.petName}</strong><div className="muted">{a.tutorName}</div></td>
           <td>{a.service}<div className="muted">Porte {a.size}</div></td>
           <td>{a.professionalName}</td>
-          <td>{a.durationMinutes} min</td>
-          <td><span className={`pill ${a.status === 'Confirmado' || a.status === 'Concluído' ? 'green' : a.status === 'Cancelado' ? 'red' : 'amber'}`}>{a.status}</span></td>
-          <td style={{ textAlign: 'right' }}><DeleteButton action={deleteAppointmentAction.bind(null, a.id)} label={`o agendamento de ${a.petName}`} /></td>
+          <td>{formatDuration(a.durationMinutes)}</td>
+          <td><Link href={`/agendamentos/${a.id}/status`} className={`pill ${statusPillColor(a.status)}`} title={`Alterar status do agendamento de ${a.petName}`}>{a.status}</Link></td>
+          <td style={{ textAlign: 'right' }}><div style={{ display: 'inline-flex', gap: 6 }}><Link href={`/agendamentos/${a.id}/editar`} className="icon-button icon-button-sm" title={`Editar o agendamento de ${a.petName}`} aria-label={`Editar o agendamento de ${a.petName}`}><Icon name="edit"/></Link><Link href={`/agendamentos/${a.id}/status`} className="icon-button icon-button-sm" title={`Alterar status do agendamento de ${a.petName}`} aria-label={`Alterar status do agendamento de ${a.petName}`}><Icon name="check"/></Link><DeleteButton action={deleteAppointmentAction.bind(null, a.id)} label={`o agendamento de ${a.petName}`} /></div></td>
         </tr>)}</tbody>
       </table></div>
     )}

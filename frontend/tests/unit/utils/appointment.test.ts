@@ -1,58 +1,28 @@
 /**
  * @file Testes Unitários: Utilitários de Agendamento
- * @description Valida as lógicas de cálculo de tempo e formatação de texto para exibição.
- * 
+ * @description Valida os helpers de formatação usados na exibição dos agendamentos.
+ *
  * @type {Teste de Unidade}
- * 
+ *
  * @notes
- * - REGRA DE NEGÓCIO (RN-01): Pets de porte Grande/Gigante levam o dobro do tempo-base.
- * - HELPER VISUAL: Esta função reflete a regra no frontend para correta expectativa do 
- *   usuário (UX). A fonte da verdade (validação canônica) deve sempre ocorrer no backend.
+ * - REGRA DE NEGÓCIO (RN-01): O cálculo de duração (porte Grande/Gigante dobra o tempo-base)
+ *   NÃO existe mais no frontend. A fonte da verdade é o backend
+ *   (backend/app/services/duration_service.py), coberto por testes PyTest. O frontend apenas
+ *   exibe o `durationMinutes` devolvido pela API.
  */
 
 import { describe, expect, it } from 'vitest';
-import { getAppointmentDuration, formatDuration } from '@/utils/appointment';
+import * as appointmentUtils from '@/utils/appointment';
+import { formatDate, formatDuration, statusPillColor, toTimeInputValue } from '@/utils/appointment';
 
 // =============================================================================
-// SUÍTE DE TESTES: CÁLCULO DE DURAÇÃO (RN-01)
+// SUÍTE DE TESTES: REGRAS DUPLICADAS REMOVIDAS
 // =============================================================================
 
-describe('Unit | getAppointmentDuration (Regra RN-01)', () => {
-    
-    it('deve manter a duração-base para pets de porte Pequeno', () => {
-        // Arrange, Act & Assert
-        expect(getAppointmentDuration(60, 'Pequeno')).toBe(60);
-    });
+describe('Unit | utils/appointment — sem regras de negócio duplicadas', () => {
 
-    it('deve manter a duração-base para pets de porte Médio', () => {
-        // Arrange, Act & Assert
-        expect(getAppointmentDuration(45, 'Médio')).toBe(45);
-    });
-
-    it('deve dobrar a duração-base para pets de porte Grande', () => {
-        // Arrange, Act & Assert
-        expect(getAppointmentDuration(60, 'Grande')).toBe(120);
-    });
-
-    it('deve dobrar a duração-base para pets de porte Gigante', () => {
-        // Arrange, Act & Assert
-        expect(getAppointmentDuration(30, 'Gigante')).toBe(60);
-    });
-
-    it('deve retornar 0 quando a duração-base for zero, sem erros', () => {
-        // Arrange, Act & Assert (Regressão: 0 * 2 não deve virar NaN)
-        expect(getAppointmentDuration(0, 'Grande')).toBe(0);
-    });
-
-    it('deve ser uma função pura e não modificar a variável original de tempo', () => {
-        // 1. Arrange
-        const baseDuration = 60;
-        
-        // 2. Act
-        getAppointmentDuration(baseDuration, 'Grande');
-        
-        // 3. Assert
-        expect(baseDuration).toBe(60);
+    it('não deve expor cálculo de duração (RN-01 é exclusiva do backend)', () => {
+        expect('getAppointmentDuration' in appointmentUtils).toBe(false);
     });
 });
 
@@ -61,39 +31,53 @@ describe('Unit | getAppointmentDuration (Regra RN-01)', () => {
 // =============================================================================
 
 describe('Unit | formatDuration', () => {
-    
+
     it('deve formatar minutos puros (menos de uma hora) no formato "N min"', () => {
-        // Arrange, Act & Assert
         expect(formatDuration(45)).toBe('45 min');
     });
 
     it('deve formatar horas exatas (sem minutos restantes) no formato "Nh"', () => {
-        // Arrange, Act & Assert
         expect(formatDuration(60)).toBe('1h');
         expect(formatDuration(120)).toBe('2h');
     });
 
     it('deve formatar horas com minutos restantes no formato "Nh Mmin"', () => {
-        // Arrange, Act & Assert
         expect(formatDuration(90)).toBe('1h 30min');
         expect(formatDuration(135)).toBe('2h 15min');
     });
 
     it('deve tratar 0 minutos como "0 min" explicitamente', () => {
-        // Arrange, Act & Assert 
         // Caso extremo: previne cair em blocos que retornam strings vazias para hora 0
         expect(formatDuration(0)).toBe('0 min');
     });
+});
 
-    it('deve refletir a regra RN-01 no texto final ao integrar com getAppointmentDuration', () => {
-        // 1. Arrange
-        // (Simula o fluxo real do formulário de agendamento)
-        const duration = getAppointmentDuration(60, 'Grande');
-        
-        // 2. Act
-        const formattedResult = formatDuration(duration);
+describe('Unit | formatDate', () => {
 
-        // 3. Assert
-        expect(formattedResult).toBe('2h');
+    it('deve converter a data ISO da API para o formato brasileiro', () => {
+        expect(formatDate('2026-10-23')).toBe('23/10/2026');
+    });
+});
+
+describe('Unit | toTimeInputValue', () => {
+
+    it('deve remover os segundos do horário devolvido pela API', () => {
+        expect(toTimeInputValue('09:30:00')).toBe('09:30');
+    });
+
+    it('deve manter horários que já estão no formato HH:MM', () => {
+        expect(toTimeInputValue('14:00')).toBe('14:00');
+    });
+});
+
+describe('Unit | statusPillColor', () => {
+
+    it.each([
+        ['Confirmado', 'green'],
+        ['Concluído', 'green'],
+        ['Cancelado', 'red'],
+        ['Pendente', 'amber'],
+    ] as const)('deve usar a cor correta para o status %s', (status, color) => {
+        expect(statusPillColor(status)).toBe(color);
     });
 });
