@@ -57,7 +57,9 @@ export async function logoutAction(): Promise<void> {
 
 // --- Criação ------------------------------------------------------------------
 
-export async function createTutorAction(input: TutorCreateInput): Promise<ActionResult<Awaited<ReturnType<typeof createTutor>>>> {
+export async function createTutorAction(
+  input: TutorCreateInput,
+): Promise<ActionResult<Awaited<ReturnType<typeof createTutor>>>> {
   try {
     const tutor = await createTutor(input);
     revalidatePath('/tutores');
@@ -68,7 +70,9 @@ export async function createTutorAction(input: TutorCreateInput): Promise<Action
   }
 }
 
-export async function createPetAction(input: PetCreateInput): Promise<ActionResult<Awaited<ReturnType<typeof createPet>>>> {
+export async function createPetAction(
+  input: PetCreateInput,
+): Promise<ActionResult<Awaited<ReturnType<typeof createPet>>>> {
   try {
     const pet = await createPet(input);
     revalidatePath('/pets');

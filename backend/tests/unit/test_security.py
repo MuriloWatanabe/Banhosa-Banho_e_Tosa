@@ -25,6 +25,7 @@ from app.core.security import create_access_token, decode_access_token, hash_pas
 # SUÍTE DE TESTES: HASHING DE SENHAS
 # ============================================================================
 
+
 def test_password_hash_can_be_verified_without_exposing_plaintext() -> None:
     # 1. Arrange & Act (Gera o hash a partir de uma senha em texto plano)
     hashed_password = hash_password("senha-segura")
@@ -34,9 +35,11 @@ def test_password_hash_can_be_verified_without_exposing_plaintext() -> None:
     assert verify_password("senha-segura", hashed_password)
     assert not verify_password("senha-errada", hashed_password)
 
+
 # ============================================================================
 # SUÍTE DE TESTES: TOKENS JWT
 # ============================================================================
+
 
 def test_access_token_contains_subject_and_extra_claims() -> None:
     # 1. Arrange & Act (Cria o token com dados adicionais customizados)
@@ -54,7 +57,7 @@ def test_access_token_contains_subject_and_extra_claims() -> None:
 
 def test_decode_access_token_returns_none_for_malformed_token() -> None:
     # Arrange, Act & Assert
-    # Garante que um token estruturalmente inválido seja rejeitado 
+    # Garante que um token estruturalmente inválido seja rejeitado
     # de forma segura (retornando None em vez de crashar a aplicação).
     assert decode_access_token("token-malformado") is None
 
@@ -68,6 +71,6 @@ def test_decode_access_token_returns_none_for_expired_token() -> None:
     )
 
     # 2. Act & Assert
-    # O decodificador deve verificar o tempo de vida (claim "exp") 
+    # O decodificador deve verificar o tempo de vida (claim "exp")
     # e rejeitar o acesso devolvendo None.
     assert decode_access_token(expired_token) is None

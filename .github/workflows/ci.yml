@@ -8,7 +8,7 @@ on:
 
 jobs:
   backend:
-    name: Backend (pytest)
+    name: Backend (quality and tests)
     runs-on: ubuntu-latest
 
     defaults:
@@ -27,11 +27,20 @@ jobs:
       - name: Instalar dependências
         run: pip install --no-cache-dir -r requirements.txt
 
+      - name: Rodar lint (Ruff)
+        run: ruff check .
+
+      - name: Verificar formatação (Black)
+        run: black --check .
+
+      - name: Verificar imports (isort)
+        run: isort --check-only .
+
       - name: Rodar testes (pytest)
         run: pytest -v
 
   frontend:
-    name: Frontend (npm)
+    name: Frontend (quality and tests)
     runs-on: ubuntu-latest
 
     defaults:
@@ -59,6 +68,9 @@ jobs:
 
       - name: Rodar lint
         run: npm run lint
+
+      - name: Verificar formatação (Prettier)
+        run: npm run format:check
 
       - name: Rodar testes com cobertura
         run: npm run test:coverage

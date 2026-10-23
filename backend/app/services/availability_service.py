@@ -6,6 +6,7 @@ nos tosadores principais). A checagem é feita em memória, sobre uma
 lista de agendamentos já existentes, para manter a regra pura e
 testável sem precisar de um banco real.
 """
+
 from dataclasses import dataclass
 from datetime import time as time_type
 

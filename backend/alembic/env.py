@@ -4,11 +4,12 @@ Usa DATABASE_URL de app.core.config.settings (variável de ambiente),
 em vez de hard-codar a URL no alembic.ini, e importa app.models para
 garantir que todo o metadata esteja registrado antes do autogenerate.
 """
+
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from alembic import context
 from app.core.config import settings
 from app.core.database import Base
 from app.models import *  # noqa: F401,F403  (registra todos os modelos no metadata)

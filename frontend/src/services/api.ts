@@ -145,7 +145,10 @@ export async function updateAppointment(id: string, input: AppointmentUpdateInpu
 
 export async function changeAppointmentStatus(id: string, status: AppointmentStatus): Promise<Appointment> {
   // As transições permitidas são decididas pelo backend.
-  return apiFetch<Appointment>(`/agendamentos/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+  return apiFetch<Appointment>(`/agendamentos/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
 }
 
 // --- Remoção ----------------------------------------------------------------

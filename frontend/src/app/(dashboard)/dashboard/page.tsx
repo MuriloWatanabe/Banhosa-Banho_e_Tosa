@@ -6,7 +6,11 @@ import { SectionHeader } from '@/components/SectionHeader';
 import { statusPillColor, toTimeInputValue } from '@/utils/appointment';
 
 function formatToday() {
-  const formatted = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const formatted = new Date().toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
   return `Hoje · ${formatted}`;
 }
 
@@ -41,11 +45,7 @@ export default async function DashboardPage() {
           icon={<Icon name="users" />}
         />
 
-        <StatCard
-          label="Pets cadastrados"
-          value={String(data.totals.pets)}
-          icon={<Icon name="pets" />}
-        />
+        <StatCard label="Pets cadastrados" value={String(data.totals.pets)} icon={<Icon name="pets" />} />
 
         <StatCard
           label="Profissionais"
@@ -54,10 +54,7 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <section
-        className="panel w-full"
-        style={{ marginTop: '40px' }}
-      >
+      <section className="panel w-full" style={{ marginTop: '40px' }}>
         <SectionHeader
           title="Próximos atendimentos"
           actionLabel="Ver agenda completa"
@@ -101,11 +98,7 @@ export default async function DashboardPage() {
                     <td>{a.professionalName}</td>
 
                     <td>
-                      <span
-                        className={`pill ${statusPillColor(a.status)}`}
-                      >
-                        {a.status}
-                      </span>
+                      <span className={`pill ${statusPillColor(a.status)}`}>{a.status}</span>
                     </td>
                   </tr>
                 ))}

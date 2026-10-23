@@ -26,16 +26,17 @@ from app.services.availability_service import (
 # SUÍTE DE TESTES: CONFLITOS DE AGENDA (RN-02)
 # ==============================================================================
 
+
 def test_no_conflict_when_no_existing_bookings() -> None:
     # Arrange, Act & Assert
     # Uma agenda vazia não deve levantar exceção (nenhum conflito)
-    assert_no_conflict(time(10, 0), 60, existing_bookings=[]) 
+    assert_no_conflict(time(10, 0), 60, existing_bookings=[])
 
 
 def test_no_conflict_when_bookings_dont_overlap() -> None:
     # 1. Arrange (Agendamento existente: 09:00 às 10:00)
     existing = [ExistingBooking(id="1", start_time=time(9, 0), duration_minutes=60)]
-    
+
     # 2. Act & Assert
     # Tentativa: 10:00 às 11:00. Começa exatamente quando o outro acaba (permitido)
     assert_no_conflict(time(10, 0), 60, existing)
@@ -44,7 +45,7 @@ def test_no_conflict_when_bookings_dont_overlap() -> None:
 def test_conflict_when_new_booking_starts_during_existing() -> None:
     # 1. Arrange (Agendamento existente: 09:00 às 10:00)
     existing = [ExistingBooking(id="1", start_time=time(9, 0), duration_minutes=60)]
-    
+
     # 2. Act & Assert
     # Tentativa: 09:30 às 10:00. Inicia no meio do agendamento existente (bloqueado)
     with pytest.raises(ConflictError):
@@ -54,7 +55,7 @@ def test_conflict_when_new_booking_starts_during_existing() -> None:
 def test_conflict_when_new_booking_fully_contains_existing() -> None:
     # 1. Arrange (Agendamento existente curto: 09:30 às 09:45)
     existing = [ExistingBooking(id="1", start_time=time(9, 30), duration_minutes=15)]
-    
+
     # 2. Act & Assert
     # Tentativa: 09:00 às 11:00. Engloba totalmente o agendamento existente (bloqueado)
     with pytest.raises(ConflictError):
@@ -66,9 +67,9 @@ def test_conflict_with_double_duration_large_pet() -> None:
     # Caso realista: Tosador com um Banho às 09:00 para um pet Grande.
     # Pela regra RN-01, o tempo dobra para 120min, terminando às 11:00.
     existing = [ExistingBooking(id="1", start_time=time(9, 0), duration_minutes=120)]
-    
+
     # 2. Act & Assert
-    # Tentativa: Novo agendamento às 10:30. 
+    # Tentativa: Novo agendamento às 10:30.
     # Deve ser recusado, mesmo que a hora de início "pareça" livre.
     with pytest.raises(ConflictError):
         assert_no_conflict(time(10, 30), 45, existing)
@@ -77,6 +78,7 @@ def test_conflict_with_double_duration_large_pet() -> None:
 # ==============================================================================
 # SUÍTE DE TESTES: VALIDAÇÃO DE HORÁRIO COMERCIAL
 # ==============================================================================
+
 
 def test_within_business_hours_ok() -> None:
     # Arrange, Act & Assert

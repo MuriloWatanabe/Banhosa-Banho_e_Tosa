@@ -1,11 +1,16 @@
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models.enums import EspeciePet, PortePet
+
+if TYPE_CHECKING:
+    from app.models.agendamento import Agendamento
+    from app.models.tutor import Tutor
 
 
 class Pet(Base):

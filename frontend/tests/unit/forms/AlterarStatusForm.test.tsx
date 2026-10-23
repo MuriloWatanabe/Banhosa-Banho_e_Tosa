@@ -21,16 +21,16 @@ import type { Appointment } from '@/types';
 // =============================================================================
 
 const { changeAppointmentStatusActionMock, refreshMock } = vi.hoisted(() => ({
-    changeAppointmentStatusActionMock: vi.fn(),
-    refreshMock: vi.fn(),
+  changeAppointmentStatusActionMock: vi.fn(),
+  refreshMock: vi.fn(),
 }));
 
 vi.mock('@/app/actions', () => ({
-    changeAppointmentStatusAction: changeAppointmentStatusActionMock,
+  changeAppointmentStatusAction: changeAppointmentStatusActionMock,
 }));
 
 vi.mock('next/navigation', () => ({
-    useRouter: () => ({ push: vi.fn(), refresh: refreshMock }),
+  useRouter: () => ({ push: vi.fn(), refresh: refreshMock }),
 }));
 
 // =============================================================================
@@ -38,18 +38,18 @@ vi.mock('next/navigation', () => ({
 // =============================================================================
 
 const appointment: Appointment = {
-    id: 'a-1',
-    petId: 'p-2',
-    professionalId: 'prof-1',
-    petName: 'Thor',
-    tutorName: 'Bruno Lima',
-    service: 'Banho',
-    size: 'Grande',
-    professionalName: 'Carla Dias',
-    date: '2030-01-15',
-    startTime: '09:00:00',
-    durationMinutes: 120,
-    status: 'Pendente',
+  id: 'a-1',
+  petId: 'p-2',
+  professionalId: 'prof-1',
+  petName: 'Thor',
+  tutorName: 'Bruno Lima',
+  service: 'Banho',
+  size: 'Grande',
+  professionalName: 'Carla Dias',
+  date: '2030-01-15',
+  startTime: '09:00:00',
+  durationMinutes: 120,
+  status: 'Pendente',
 };
 
 // =============================================================================
@@ -57,71 +57,70 @@ const appointment: Appointment = {
 // =============================================================================
 
 describe('UI | AlterarStatusForm', () => {
+  beforeEach(() => {
+    changeAppointmentStatusActionMock.mockReset();
+    refreshMock.mockClear();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  });
 
-    beforeEach(() => {
-        changeAppointmentStatusActionMock.mockReset();
-        refreshMock.mockClear();
-        vi.spyOn(window, 'confirm').mockReturnValue(true);
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('deve exibir o status atual e oferecer os demais status como opção', () => {
+    render(<AlterarStatusForm appointment={appointment} />);
+
+    expect(screen.getByTestId('current-status')).toHaveTextContent('Pendente');
+    expect(screen.getByRole('button', { name: /Confirmado/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Concluído/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Cancelado/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Pendente/ })).not.toBeInTheDocument();
+  });
+
+  it('deve exibir os dados do atendimento no resumo', () => {
+    const { container } = render(<AlterarStatusForm appointment={appointment} />);
+
+    const summary = container.querySelector('.summary-card');
+    expect(summary).toHaveTextContent('Thor');
+    expect(summary).toHaveTextContent('15/01/2030 · 09:00');
+    expect(summary).toHaveTextContent('2h');
+  });
+
+  it('NÃO deve chamar a Server Action se o usuário cancelar a confirmação', async () => {
+    vi.mocked(window.confirm).mockReturnValue(false);
+    const user = userEvent.setup();
+    render(<AlterarStatusForm appointment={appointment} />);
+
+    await user.click(screen.getByRole('button', { name: /Confirmado/ }));
+
+    expect(changeAppointmentStatusActionMock).not.toHaveBeenCalled();
+  });
+
+  it('deve alterar o status e atualizar a tela após sucesso', async () => {
+    changeAppointmentStatusActionMock.mockResolvedValue({ data: { ...appointment, status: 'Confirmado' } });
+    const user = userEvent.setup();
+    render(<AlterarStatusForm appointment={appointment} />);
+
+    await user.click(screen.getByRole('button', { name: /Confirmado/ }));
+
+    expect(changeAppointmentStatusActionMock).toHaveBeenCalledWith('a-1', 'Confirmado');
+    expect(await screen.findByRole('status')).toHaveTextContent('Status alterado para "Confirmado".');
+    expect(screen.getByTestId('current-status')).toHaveTextContent('Confirmado');
+    expect(screen.getByRole('button', { name: /Pendente/ })).toBeInTheDocument();
+    expect(refreshMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('deve exibir o erro da API quando a transição for inválida, mantendo o status atual', async () => {
+    changeAppointmentStatusActionMock.mockResolvedValue({
+      error: "Transição de status inválida: 'Concluído' → 'Pendente'.",
     });
+    const user = userEvent.setup();
+    render(<AlterarStatusForm appointment={{ ...appointment, status: 'Concluído' }} />);
 
-    afterEach(() => {
-        vi.restoreAllMocks();
-    });
+    await user.click(screen.getByRole('button', { name: /Pendente/ }));
 
-    it('deve exibir o status atual e oferecer os demais status como opção', () => {
-        render(<AlterarStatusForm appointment={appointment} />);
-
-        expect(screen.getByTestId('current-status')).toHaveTextContent('Pendente');
-        expect(screen.getByRole('button', { name: /Confirmado/ })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Concluído/ })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Cancelado/ })).toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: /Pendente/ })).not.toBeInTheDocument();
-    });
-
-    it('deve exibir os dados do atendimento no resumo', () => {
-        const { container } = render(<AlterarStatusForm appointment={appointment} />);
-
-        const summary = container.querySelector('.summary-card');
-        expect(summary).toHaveTextContent('Thor');
-        expect(summary).toHaveTextContent('15/01/2030 · 09:00');
-        expect(summary).toHaveTextContent('2h');
-    });
-
-    it('NÃO deve chamar a Server Action se o usuário cancelar a confirmação', async () => {
-        vi.mocked(window.confirm).mockReturnValue(false);
-        const user = userEvent.setup();
-        render(<AlterarStatusForm appointment={appointment} />);
-
-        await user.click(screen.getByRole('button', { name: /Confirmado/ }));
-
-        expect(changeAppointmentStatusActionMock).not.toHaveBeenCalled();
-    });
-
-    it('deve alterar o status e atualizar a tela após sucesso', async () => {
-        changeAppointmentStatusActionMock.mockResolvedValue({ data: { ...appointment, status: 'Confirmado' } });
-        const user = userEvent.setup();
-        render(<AlterarStatusForm appointment={appointment} />);
-
-        await user.click(screen.getByRole('button', { name: /Confirmado/ }));
-
-        expect(changeAppointmentStatusActionMock).toHaveBeenCalledWith('a-1', 'Confirmado');
-        expect(await screen.findByRole('status')).toHaveTextContent('Status alterado para "Confirmado".');
-        expect(screen.getByTestId('current-status')).toHaveTextContent('Confirmado');
-        expect(screen.getByRole('button', { name: /Pendente/ })).toBeInTheDocument();
-        expect(refreshMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('deve exibir o erro da API quando a transição for inválida, mantendo o status atual', async () => {
-        changeAppointmentStatusActionMock.mockResolvedValue({
-            error: "Transição de status inválida: 'Concluído' → 'Pendente'.",
-        });
-        const user = userEvent.setup();
-        render(<AlterarStatusForm appointment={{ ...appointment, status: 'Concluído' }} />);
-
-        await user.click(screen.getByRole('button', { name: /Pendente/ }));
-
-        expect(await screen.findByRole('alert')).toHaveTextContent('Transição de status inválida');
-        expect(screen.getByTestId('current-status')).toHaveTextContent('Concluído');
-        expect(refreshMock).not.toHaveBeenCalled();
-    });
+    expect(await screen.findByRole('alert')).toHaveTextContent('Transição de status inválida');
+    expect(screen.getByTestId('current-status')).toHaveTextContent('Concluído');
+    expect(refreshMock).not.toHaveBeenCalled();
+  });
 });

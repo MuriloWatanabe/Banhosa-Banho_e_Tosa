@@ -4,6 +4,7 @@ Os valores espelham exatamente os literais usados no frontend
 (src/types/index.ts) para que schemas Pydantic sirvam a resposta
 sem nenhuma tradução.
 """
+
 import enum
 
 

@@ -25,10 +25,7 @@ def list_all(db: Session) -> list[Agendamento]:
 
 def list_by_date(db: Session, date: date_type) -> list[Agendamento]:
     stmt = (
-        select(Agendamento)
-        .options(*_EAGER)
-        .where(Agendamento.date == date)
-        .order_by(Agendamento.start_time)
+        select(Agendamento).options(*_EAGER).where(Agendamento.date == date).order_by(Agendamento.start_time)
     )
     return list(db.scalars(stmt).all())
 

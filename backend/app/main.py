@@ -30,6 +30,7 @@ app.add_middleware(
 # correto. Isso evita try/except repetido em cada router e mantém a
 # camada de serviço 100% testável de forma isolada.
 
+
 def _error_response(status_code: int, message: str) -> JSONResponse:
     return JSONResponse(status_code=status_code, content={"detail": message})
 
@@ -72,6 +73,7 @@ async def integrity_error_handler(_request: Request, _exc: IntegrityError) -> JS
 
 
 # --- Rotas -------------------------------------------------------------------
+
 
 @app.get("/health", tags=["health"])
 def health_check() -> dict:

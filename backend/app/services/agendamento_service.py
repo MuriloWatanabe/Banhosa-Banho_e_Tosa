@@ -1,4 +1,6 @@
-from datetime import date as date_type, datetime, time as time_type
+from datetime import date as date_type
+from datetime import datetime
+from datetime import time as time_type
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
@@ -136,9 +138,7 @@ def create_appointment(db: Session, payload: AgendamentoCreate) -> Agendamento:
 def update_appointment(db: Session, agendamento_id: str, payload: AgendamentoUpdate) -> Agendamento:
     agendamento = _get_or_404(db, agendamento_id)
     if not _ALLOWED_STATUS_TRANSITIONS[agendamento.status]:
-        raise ValidationError(
-            f"Agendamentos com status '{agendamento.status.value}' não podem ser editados."
-        )
+        raise ValidationError(f"Agendamentos com status '{agendamento.status.value}' não podem ser editados.")
 
     pet, profissional, duration_minutes = _validate_booking(
         db,

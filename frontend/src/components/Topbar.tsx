@@ -18,7 +18,9 @@ export function Topbar() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   // Sub-rotas (ex.: /agendamentos/[id]/editar) herdam o título da seção.
-  const section = Object.keys(titles).find((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  const section = Object.keys(titles).find(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
   const title = section ? titles[section] : 'Banhosa Baso';
 
   function logout() {
@@ -31,5 +33,22 @@ export function Topbar() {
     });
   }
 
-  return <header className="topbar"><div><div className="eyebrow">Pet care · Gestão</div><h1>{title}</h1></div><div className="topbar-actions"><button className="user-chip" onClick={logout} disabled={isPending} title="Sair"><div className="avatar">BA</div><div><strong>Banhosa.Adm</strong><small>Administrador</small></div><Icon name="chevron"/></button></div></header>;
+  return (
+    <header className="topbar">
+      <div>
+        <div className="eyebrow">Pet care · Gestão</div>
+        <h1>{title}</h1>
+      </div>
+      <div className="topbar-actions">
+        <button className="user-chip" onClick={logout} disabled={isPending} title="Sair">
+          <div className="avatar">BA</div>
+          <div>
+            <strong>Banhosa.Adm</strong>
+            <small>Administrador</small>
+          </div>
+          <Icon name="chevron" />
+        </button>
+      </div>
+    </header>
+  );
 }

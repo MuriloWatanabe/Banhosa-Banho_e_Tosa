@@ -1,4 +1,5 @@
-from datetime import date as date_type, time as time_type
+from datetime import date as date_type
+from datetime import time as time_type
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -44,7 +45,9 @@ class AgendamentoRead(BaseModel):
     tutorName: str = Field(validation_alias="tutor_name", serialization_alias="tutorName")
     service: str
     size: PortePet
-    professionalName: str = Field(validation_alias="professional_name", serialization_alias="professionalName")
+    professionalName: str = Field(
+        validation_alias="professional_name", serialization_alias="professionalName"
+    )
     date: date_type
     startTime: time_type = Field(validation_alias="start_time", serialization_alias="startTime")
     durationMinutes: int = Field(validation_alias="duration_minutes", serialization_alias="durationMinutes")

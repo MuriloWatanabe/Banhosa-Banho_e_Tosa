@@ -1,4 +1,5 @@
 """Configuração do SQLAlchemy: engine, sessão e Base declarativa."""
+
 from collections.abc import Generator
 
 from sqlalchemy import create_engine

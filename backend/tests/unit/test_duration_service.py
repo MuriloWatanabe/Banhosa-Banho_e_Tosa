@@ -21,6 +21,7 @@ from app.services.duration_service import calculate_duration_minutes
 # SUÍTE DE TESTES: MULTIPLICADOR DE PORTE (RN-01)
 # ============================================================================
 
+
 @pytest.mark.parametrize(
     "size,expected_multiplier",
     [
@@ -33,10 +34,10 @@ from app.services.duration_service import calculate_duration_minutes
 def test_duration_multiplier_by_size(size: PortePet, expected_multiplier: int) -> None:
     # 1. Arrange (Define o tempo base de um serviço padrão)
     base_minutes = 60  # "Banho"
-    
+
     # 2. Act
     duration = calculate_duration_minutes("Banho", size)
-    
+
     # 3. Assert (Valida se o multiplicador correto foi aplicado sobre a base)
     assert duration == base_minutes * expected_multiplier
 
@@ -55,6 +56,7 @@ def test_duration_uses_correct_base_per_service() -> None:
 # SUÍTE DE TESTES: VALIDAÇÃO DE SERVIÇOS
 # ============================================================================
 
+
 def test_unknown_service_raises_validation_error() -> None:
     # Arrange, Act & Assert
     # Serviços não catalogados devem ser rejeitados imediatamente.
@@ -64,7 +66,7 @@ def test_unknown_service_raises_validation_error() -> None:
 
 def test_unknown_service_error_lists_valid_services() -> None:
     # Arrange, Act & Assert
-    # A mensagem de erro deve ser auto-explicativa e listar quais são os 
+    # A mensagem de erro deve ser auto-explicativa e listar quais são os
     # serviços válidos disponíveis (ex: a string "Banho" deve constar na mensagem).
     with pytest.raises(ValidationError, match="Banho"):
         calculate_duration_minutes("Serviço inexistente", PortePet.PEQUENO)

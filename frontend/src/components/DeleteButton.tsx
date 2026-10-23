@@ -13,7 +13,8 @@ export function DeleteButton({ action, label, confirmMessage }: Props) {
   const [isPending, startTransition] = useTransition();
 
   function handleClick() {
-    const message = confirmMessage ?? `Tem certeza que deseja excluir ${label}? Essa ação não pode ser desfeita.`;
+    const message =
+      confirmMessage ?? `Tem certeza que deseja excluir ${label}? Essa ação não pode ser desfeita.`;
     if (!window.confirm(message)) return;
     startTransition(async () => {
       const result = await action();
