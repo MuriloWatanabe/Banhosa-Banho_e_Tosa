@@ -1,4 +1,4 @@
-# Banhosa Baso — Front-end
+# Banhosa — Front-end
 
 Frontend do MVP do sistema de banho, tosa e atendimento veterinário, seguindo a especificação do projeto.
 
