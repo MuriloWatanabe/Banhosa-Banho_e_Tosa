@@ -17,11 +17,21 @@ export function Sidebar() {
   const pathname = usePathname();
   return (
     <aside className="sidebar">
-      <div className="brand"><span className="brand-mark"><Image src="/logo.png" alt="Banhosa" width={24} height={24}/></span><span>Banhosa</span></div>
+      <div className="brand">
+        <span className="brand-mark">
+          <Image src="/logo.png" alt="Banhosa" width={24} height={24} />
+        </span>
+        <span>Banhosa</span>
+      </div>
       <nav className="sidebar-nav" aria-label="Navegação principal">
         {items.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          return <Link key={item.href} href={item.href} className={`nav-item ${active ? 'active' : ''}`}><Icon name={item.icon}/><span>{item.label}</span></Link>;
+          return (
+            <Link key={item.href} href={item.href} className={`nav-item ${active ? 'active' : ''}`}>
+              <Icon name={item.icon} />
+              <span>{item.label}</span>
+            </Link>
+          );
         })}
       </nav>
     </aside>

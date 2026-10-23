@@ -13,7 +13,9 @@ def list_profissionais(db: DbSession, _current_user: CurrentUser) -> list[Profis
 
 
 @router.post("", response_model=ProfissionalRead, status_code=status.HTTP_201_CREATED)
-def create_profissional(payload: ProfissionalCreate, db: DbSession, _current_user: CurrentUser) -> ProfissionalRead:
+def create_profissional(
+    payload: ProfissionalCreate, db: DbSession, _current_user: CurrentUser
+) -> ProfissionalRead:
     return profissional_service.create_professional(db, payload)
 
 

@@ -7,6 +7,7 @@ funcione sem precisar mudar a tela de login imediatamente.
 Uso:
     python -m app.seed
 """
+
 from app.core.database import Base, SessionLocal, engine
 from app.core.security import hash_password
 from app.models import Usuario  # noqa: F401 (garante o registro no metadata)

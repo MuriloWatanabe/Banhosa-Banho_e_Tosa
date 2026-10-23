@@ -3,6 +3,7 @@
 Frontend do MVP do sistema de banho, tosa e atendimento veterinário, seguindo a especificação do projeto.
 
 ## Stack
+
 - Next.js 16 (App Router)
 - React 19
 - Node.js >= 20.9
@@ -10,19 +11,26 @@ Frontend do MVP do sistema de banho, tosa e atendimento veterinário, seguindo a
 - CSS próprio, sem biblioteca visual externa
 
 ## Executar
+
 ```bash
 npm install
 npm run dev
 ```
+
 Abra `http://localhost:3000`.
 
 ## Validação
+
 ```bash
 npm run typecheck   # gera os tipos de rota (next typegen) e roda o tsc
 npm run lint
+npm run format:check # verifica a formatação com Prettier
 npm run test        # Vitest (npm run test:coverage para cobertura)
 npm run build
 ```
+
+Ao executar `npm install`, o Husky configura o hook de pre-commit. O lint-staged
+aplica ESLint e Prettier somente aos arquivos adicionados ao commit.
 
 ## Integração com FastAPI
 
@@ -88,4 +96,3 @@ cd frontend && npm run dev
 ```
 
 Abra `http://localhost:3000` — vai redirecionar para `/login`.
-

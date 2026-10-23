@@ -21,6 +21,7 @@ from app.services import agendamento_service
 # ==============================================================================
 # Helpers para popular o banco de dados e preparar o estado antes da leitura do dashboard.
 
+
 def _create_tutor(client, headers, email="maria@example.com"):
     return client.post(
         "/api/v1/tutores",
@@ -50,9 +51,11 @@ def _create_professional(client, headers, name="Ana Tosadora", active=True):
         headers=headers,
     ).json()
 
+
 # ==============================================================================
 # SUÍTE DE TESTES
 # ==============================================================================
+
 
 def test_dashboard_counts_active_resources_and_today_appointments(client, auth_headers, monkeypatch):
     # 0. Congela o "agora" no início do dia: o agendamento das 09:00 de hoje
@@ -83,7 +86,7 @@ def test_dashboard_counts_active_resources_and_today_appointments(client, auth_h
 
     # 3. Assert (Valida os cálculos de métricas e os dados anexados na listagem)
     assert response.status_code == 200
-    
+
     # O total de profissionais deve ser 1, validando a filtragem de "Dr. Inativo"
     assert response.json()["totals"] == {
         "appointmentsToday": 1,
@@ -91,7 +94,7 @@ def test_dashboard_counts_active_resources_and_today_appointments(client, auth_h
         "pets": 1,
         "professionals": 1,
     }
-    
+
     # A listagem detalhada deve estar populada corretamente
     assert response.json()["appointments"][0]["petName"] == "Thor"
 

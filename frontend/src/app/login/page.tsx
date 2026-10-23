@@ -33,7 +33,9 @@ export default function LoginPage() {
   return (
     <div className="login-screen">
       <div className="login-card">
-        <div className="login-paw"><Image src="/logo.png" alt="Banhosa" width={32} height={32} /></div>
+        <div className="login-paw">
+          <Image src="/logo.png" alt="Banhosa" width={32} height={32} />
+        </div>
         <h1>Banhosa</h1>
         <p>Entre com seu usuário e senha para acessar o sistema.</p>
         <form className="login-form" onSubmit={submit}>
@@ -62,7 +64,11 @@ export default function LoginPage() {
               autoComplete="current-password"
             />
           </div>
-          {error ? <div className="notice" style={{ background: 'var(--danger-soft)', color: '#a73d3d' }}>{error}</div> : null}
+          {error ? (
+            <div className="notice" style={{ background: 'var(--danger-soft)', color: '#a73d3d' }}>
+              {error}
+            </div>
+          ) : null}
           <button className="btn btn-primary" type="submit" disabled={loading}>
             {loading ? 'Entrando...' : 'Entrar'}
           </button>

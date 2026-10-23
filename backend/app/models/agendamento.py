@@ -1,11 +1,18 @@
 import uuid
-from datetime import date as date_type, datetime, time as time_type
+from datetime import date as date_type
+from datetime import datetime
+from datetime import time as time_type
+from typing import TYPE_CHECKING
 
-from sqlalchemy import DDL, DateTime, Enum, ForeignKey, Integer, String, Date, Time, event, func
+from sqlalchemy import DDL, Date, DateTime, Enum, ForeignKey, Integer, String, Time, event, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models.enums import StatusAgendamento
+
+if TYPE_CHECKING:
+    from app.models.pet import Pet
+    from app.models.profissional import Profissional
 
 # RN-02 no nível do banco: impede que dois agendamentos não cancelados do
 # mesmo profissional ocupem intervalos sobrepostos, mesmo sob requisições
@@ -29,7 +36,9 @@ class Agendamento(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
 
     pet_id: Mapped[str] = mapped_column(ForeignKey("pets.id", ondelete="RESTRICT"), nullable=False)
-    profissional_id: Mapped[str] = mapped_column(ForeignKey("profissionais.id", ondelete="RESTRICT"), nullable=False)
+    profissional_id: Mapped[str] = mapped_column(
+        ForeignKey("profissionais.id", ondelete="RESTRICT"), nullable=False
+    )
 
     service: Mapped[str] = mapped_column(String(60), nullable=False)
     date: Mapped[date_type] = mapped_column(Date, nullable=False)

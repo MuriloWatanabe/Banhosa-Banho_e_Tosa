@@ -22,6 +22,7 @@ from app.models import Usuario
 # SUÍTE DE TESTES
 # ==============================================================================
 
+
 def test_health_check(client):
     # 1. Arrange & Act (Requisição simples sem dependências)
     response = client.get("/health")
@@ -39,9 +40,9 @@ def test_login_returns_token_and_me_returns_current_user(client, db_session):
     # 2. Act (Realiza o login para obter o token)
     login = client.post("/api/v1/auth/login", json={"username": "admin", "password": "senha"})
     assert login.status_code == 200
-    
+
     token = login.json()["access_token"]
-    
+
     # 3. Act (Utiliza o token gerado para acessar a rota protegida `/me`)
     me = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
 

@@ -31,6 +31,7 @@ FUTURE_DATE = (date.today() + timedelta(days=30)).isoformat()
 # Funções auxiliares para popular o banco de dados com as entidades necessárias
 # antes de testar os agendamentos em si.
 
+
 def _create_tutor(client, headers):
     resp = client.post(
         "/api/v1/tutores",
@@ -39,6 +40,7 @@ def _create_tutor(client, headers):
     )
     assert resp.status_code == 201
     return resp.json()
+
 
 def _create_pet(client, headers, tutor_id, size="Grande"):
     resp = client.post(
@@ -54,6 +56,7 @@ def _create_pet(client, headers, tutor_id, size="Grande"):
     )
     assert resp.status_code == 201
     return resp.json()
+
 
 def _create_professional(client, headers, name="Ana Tosadora", role="Tosador", active=True):
     resp = client.post(
@@ -81,6 +84,7 @@ def _create_appointment(client, headers, pet_id, professional_id, **overrides):
 # SUÍTE DE TESTES
 # ==============================================================================
 
+
 def test_create_appointment_calculates_rn01_duration_on_server(client, auth_headers):
     # 1. Arrange
     tutor = _create_tutor(client, auth_headers)
@@ -104,7 +108,7 @@ def test_create_appointment_calculates_rn01_duration_on_server(client, auth_head
     # 3. Assert
     assert resp.status_code == 201
     body = resp.json()
-    
+
     # Banho = 60min base; porte Grande dobra (RN-01) => 120min
     assert body["durationMinutes"] == 120
     # IDs de referência usados pelo frontend para pré-preencher a edição
@@ -145,7 +149,7 @@ def test_overlapping_appointment_is_rejected_with_409(client, auth_headers):
         },
         headers=auth_headers,
     )
-    
+
     # 3. Assert
     assert second.status_code == 409
 
@@ -153,7 +157,7 @@ def test_overlapping_appointment_is_rejected_with_409(client, auth_headers):
 def test_appointment_requires_authentication(client):
     # 1. Arrange & Act (Tentativa de acesso sem os headers de autenticação)
     resp = client.get("/api/v1/agendamentos")
-    
+
     # 2. Assert
     assert resp.status_code == 401
 
@@ -211,7 +215,7 @@ def test_cancelled_appointment_does_not_block_new_booking(client, auth_headers):
     tutor = _create_tutor(client, auth_headers)
     pet = _create_pet(client, auth_headers, tutor["id"], size="Pequeno")
     professional = _create_professional(client, auth_headers)
-    
+
     payload = {
         "pet_id": pet["id"],
         "profissional_id": professional["id"],
@@ -285,6 +289,7 @@ def test_invalid_appointment_payload_returns_validation_error(client, auth_heade
 # SUÍTE DE TESTES: VALIDAÇÕES DE CRIAÇÃO (M02)
 # ==============================================================================
 
+
 def test_appointment_in_past_date_is_rejected(client, auth_headers):
     tutor = _create_tutor(client, auth_headers)
     pet = _create_pet(client, auth_headers, tutor["id"], size="Pequeno")
@@ -348,6 +353,7 @@ def test_appointment_with_service_incompatible_with_role_is_rejected(client, aut
 # ==============================================================================
 # SUÍTE DE TESTES: EDIÇÃO E STATUS (M05)
 # ==============================================================================
+
 
 def _reschedule_payload(pet_id, professional_id, start_time):
     return {

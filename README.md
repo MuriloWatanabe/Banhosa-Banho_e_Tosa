@@ -286,10 +286,10 @@ Passo a passo prático que **todo desenvolvedor** deve seguir ao pegar um item d
 
    ```bash
    # Front-end
-   npm run lint && npm run test && npm run build
+   npm run lint && npm run format:check && npm run test && npm run build
 
    # Back-end
-   ruff check . && black --check . && pytest
+   ruff check . && black --check . && isort --check-only . && pytest
    ```
 
 7. **Suba a branch e abra o Pull Request** apontando para `dev`.

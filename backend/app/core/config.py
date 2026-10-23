@@ -3,6 +3,7 @@
 Todas as configurações são lidas de variáveis de ambiente (ou de um
 arquivo .env na raiz do projeto), nunca hard-coded no código.
 """
+
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict

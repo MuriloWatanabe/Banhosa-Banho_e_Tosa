@@ -22,6 +22,7 @@ from datetime import date, timedelta
 # ==============================================================================
 # Funções geradoras de payload para evitar repetição de dicionários em cada teste.
 
+
 def tutor_payload(email="maria@example.com"):
     return {"name": "Maria Silva", "phone": "47999990000", "email": email}
 
@@ -48,6 +49,7 @@ def professional_payload(active=True):
 # ==============================================================================
 # SUÍTE DE TESTES: TUTORES
 # ==============================================================================
+
 
 def test_tutors_can_be_created_listed_and_deleted(client, auth_headers):
     # 1. Act & Assert (Criação)
@@ -82,6 +84,7 @@ def test_duplicate_tutor_email_returns_validation_error(client, auth_headers):
 # SUÍTE DE TESTES: PETS
 # ==============================================================================
 
+
 def test_pets_require_existing_tutor_and_can_be_deleted(client, auth_headers):
     # 1. Arrange, Act & Assert (Tentativa falha ao vincular tutor inexistente)
     missing_tutor = client.post(
@@ -93,7 +96,7 @@ def test_pets_require_existing_tutor_and_can_be_deleted(client, auth_headers):
 
     # 2. Arrange (Cria tutor válido)
     tutor = client.post("/api/v1/tutores", json=tutor_payload(), headers=auth_headers).json()
-    
+
     # 3. Act & Assert (Criação bem sucedida de pet)
     created = client.post("/api/v1/pets", json=pet_payload(tutor["id"]), headers=auth_headers)
     assert created.status_code == 201
@@ -108,6 +111,7 @@ def test_pets_require_existing_tutor_and_can_be_deleted(client, auth_headers):
 # ==============================================================================
 # SUÍTE DE TESTES: PROFISSIONAIS
 # ==============================================================================
+
 
 def test_professionals_can_be_created_listed_and_deleted(client, auth_headers):
     # 1. Act & Assert (Criação)
@@ -132,6 +136,7 @@ def test_professionals_can_be_created_listed_and_deleted(client, auth_headers):
 # ==============================================================================
 # SUÍTE DE TESTES: SEGURANÇA E TRATAMENTO DE ERROS GENÉRICOS
 # ==============================================================================
+
 
 def test_delete_missing_resources_returns_not_found(client, auth_headers):
     # Arrange, Act & Assert
@@ -174,6 +179,7 @@ def test_invalid_pet_and_professional_payloads_are_rejected(client, auth_headers
 # ==============================================================================
 # SUÍTE DE TESTES: EDIÇÃO (M05)
 # ==============================================================================
+
 
 def test_tutor_can_be_updated_and_email_must_stay_unique(client, auth_headers):
     tutor = client.post("/api/v1/tutores", json=tutor_payload(), headers=auth_headers).json()
@@ -250,6 +256,7 @@ def test_update_missing_resources_returns_not_found(client, auth_headers):
 # ==============================================================================
 # SUÍTE DE TESTES: EXCLUSÃO COM VÍNCULOS (M03)
 # ==============================================================================
+
 
 def _create_linked_appointment(client, headers):
     """Cria tutor -> pet -> profissional -> agendamento e devolve os registros."""

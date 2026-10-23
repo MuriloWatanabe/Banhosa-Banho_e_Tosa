@@ -4,6 +4,7 @@ Regra de negócio: portes Grande e Gigante dobram a duração-base do
 serviço. Esta função é pura (sem I/O), o que permite testá-la
 unitariamente sem qualquer dependência de banco de dados ou HTTP.
 """
+
 from app.core.config import settings
 from app.core.exceptions import ValidationError
 from app.models.enums import PortePet

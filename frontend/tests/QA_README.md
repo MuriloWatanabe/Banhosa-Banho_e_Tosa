@@ -49,22 +49,22 @@ tests/
 
 A abordagem atual prioriza as regras de negócio cruciais e componentes base que podem causar regressões visuais ou quebras no fluxo do usuário.
 
-| Arquivo/Módulo Testado             | Tipo de Teste   | Justificativa / Foco do Teste                                                                                                             |
-| :--------------------------------- | :-------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| Arquivo/Módulo Testado             | Tipo de Teste   | Justificativa / Foco do Teste                                                                                                                          |
+| :--------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/utils/appointment.ts`         | Unitário        | Helpers de formatação (duração, data, horário, cor do status). Garante que a RN-01 **não** foi reintroduzida no frontend (ela é exclusiva do backend). |
-| `src/components/Icon.tsx`          | Unitário        | Previne regressões simples (ex: typo no `switch`). Todo ícone precisa renderizar corretamente.                                            |
-| `src/components/StatCard.tsx`      | Unitário        | Garante o contrato de props do card utilizado no Dashboard.                                                                               |
-| `src/components/SectionHeader.tsx` | Unitário        | Valida a lógica condicional de exibição do link de ação (`actionLabel` e `actionHref`).                                                   |
-| `src/components/DeleteButton.tsx`  | Unitário        | Valida confirmação (`window.confirm`), chamada de ação e _loading_ (`useTransition`). É a única barreira contra exclusão acidental.       |
-| `src/components/Sidebar.tsx`       | Unitário        | Valida o destaque visual do item de menu ativo, inclusive em sub-rotas.                                                                   |
-| `src/components/Topbar.tsx`        | Unitário        | Valida o título dinâmico por rota e a função de logout (limpeza de cookie e redirecionamento).                                            |
-| `NovoPetForm.tsx`                  | Unitário        | Valida estado vazio, atualização de resumo "ao vivo" e payload final enviado no `submit`.                                                 |
-| `NovoAgendamentoForm.tsx`          | Unitário        | Valida estados vazios, o payload do `submit` (só IDs, sem duração) e a exibição da duração/erros devolvidos pela API.                     |
-| `AgendamentoForm.tsx` (edição)     | Unitário        | Valida o pré-preenchimento, o payload de remarcação (sem status) e o erro de agendamento não editável.                                    |
-| `AlterarStatusForm.tsx`            | Unitário        | Valida confirmação, troca de status e exibição do erro de transição inválida vindo da API.                                                |
-| `src/app/login/page.tsx`           | Unitário        | Cobre fluxos de sucesso (redirecionamento) vs. falha (erro devolvido pela `loginAction`).                                                   |
-| `src/proxy.ts`                     | Unitário (Node) | Verifica a proteção de rotas autenticadas (presença do cookie `banhosa_token`; a validação do JWT é feita pela API).                   |
-| `DashboardPage` + API              | Integração      | Garante que a resposta da API (via `services/api.ts` real, com `fetch` simulado) é montada corretamente no Dashboard.                    |
+| `src/components/Icon.tsx`          | Unitário        | Previne regressões simples (ex: typo no `switch`). Todo ícone precisa renderizar corretamente.                                                         |
+| `src/components/StatCard.tsx`      | Unitário        | Garante o contrato de props do card utilizado no Dashboard.                                                                                            |
+| `src/components/SectionHeader.tsx` | Unitário        | Valida a lógica condicional de exibição do link de ação (`actionLabel` e `actionHref`).                                                                |
+| `src/components/DeleteButton.tsx`  | Unitário        | Valida confirmação (`window.confirm`), chamada de ação e _loading_ (`useTransition`). É a única barreira contra exclusão acidental.                    |
+| `src/components/Sidebar.tsx`       | Unitário        | Valida o destaque visual do item de menu ativo, inclusive em sub-rotas.                                                                                |
+| `src/components/Topbar.tsx`        | Unitário        | Valida o título dinâmico por rota e a função de logout (limpeza de cookie e redirecionamento).                                                         |
+| `NovoPetForm.tsx`                  | Unitário        | Valida estado vazio, atualização de resumo "ao vivo" e payload final enviado no `submit`.                                                              |
+| `NovoAgendamentoForm.tsx`          | Unitário        | Valida estados vazios, o payload do `submit` (só IDs, sem duração) e a exibição da duração/erros devolvidos pela API.                                  |
+| `AgendamentoForm.tsx` (edição)     | Unitário        | Valida o pré-preenchimento, o payload de remarcação (sem status) e o erro de agendamento não editável.                                                 |
+| `AlterarStatusForm.tsx`            | Unitário        | Valida confirmação, troca de status e exibição do erro de transição inválida vindo da API.                                                             |
+| `src/app/login/page.tsx`           | Unitário        | Cobre fluxos de sucesso (redirecionamento) vs. falha (erro devolvido pela `loginAction`).                                                              |
+| `src/proxy.ts`                     | Unitário (Node) | Verifica a proteção de rotas autenticadas (presença do cookie `banhosa_token`; a validação do JWT é feita pela API).                                   |
+| `DashboardPage` + API              | Integração      | Garante que a resposta da API (via `services/api.ts` real, com `fetch` simulado) é montada corretamente no Dashboard.                                  |
 
 ## 4. Estratégia de Mocks (O que mockar e por quê)
 

@@ -18,7 +18,9 @@ def list_agendamentos(db: DbSession, _current_user: CurrentUser) -> list[Agendam
 
 
 @router.post("", response_model=AgendamentoRead, status_code=status.HTTP_201_CREATED)
-def create_agendamento(payload: AgendamentoCreate, db: DbSession, _current_user: CurrentUser) -> AgendamentoRead:
+def create_agendamento(
+    payload: AgendamentoCreate, db: DbSession, _current_user: CurrentUser
+) -> AgendamentoRead:
     return agendamento_service.create_appointment(db, payload)
 
 

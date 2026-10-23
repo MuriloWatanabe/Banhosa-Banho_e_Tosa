@@ -10,7 +10,9 @@ const PROTECTED_PREFIXES = ['/dashboard', '/agendamentos', '/pets', '/tutores', 
 // No Next.js 16 o antigo middleware.ts passou a se chamar proxy.ts.
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  const isProtected = PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 
   if (!isProtected) {
     return NextResponse.next();
@@ -32,5 +34,11 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/agendamentos/:path*', '/pets/:path*', '/tutores/:path*', '/profissionais/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/agendamentos/:path*',
+    '/pets/:path*',
+    '/tutores/:path*',
+    '/profissionais/:path*',
+  ],
 };

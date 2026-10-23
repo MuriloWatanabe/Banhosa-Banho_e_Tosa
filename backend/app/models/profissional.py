@@ -1,11 +1,15 @@
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Enum, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models.enums import PapelProfissional
+
+if TYPE_CHECKING:
+    from app.models.agendamento import Agendamento
 
 
 class Profissional(Base):
