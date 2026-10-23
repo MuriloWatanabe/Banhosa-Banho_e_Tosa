@@ -77,8 +77,7 @@ banho_tosa/
 │   │   ├── services/           # Comunicação com a API backend
 │   │   ├── types/              # Tipos TypeScript compartilhados
 │   │   ├── utils/              # Funções auxiliares e utilitários
-│   │   ├── middleware.ts       # Middleware de autenticação de rotas
-│   │   ├── proxy.ts            # Proxy para o frontend
+│   │   ├── proxy.ts            # Proteção de rotas autenticadas (substitui o middleware.ts no Next.js 16)
 │   │   └── app/page.tsx        # Página inicial
 │   ├── public/                 # Arquivos estáticos públicos
 │   ├── tests/                  # Testes do frontend
@@ -122,6 +121,8 @@ banho_tosa/
 | GET    | `/dashboard`          | Dashboard principal com indicadores e agendamentos do dia |
 | GET    | `/agendamentos`       | Listagem da agenda                                        |
 | GET    | `/agendamentos/novo`  | Formulário de criação de agendamento                      |
+| GET    | `/agendamentos/{id}/editar` | Edição/remarcação de agendamento                    |
+| GET    | `/agendamentos/{id}/status` | Mudança de status (confirmar, concluir, cancelar)   |
 | GET    | `/pets`               | Listagem de pets                                          |
 | GET    | `/pets/novo`          | Cadastro de novo pet                                      |
 | GET    | `/tutores`            | Listagem de tutores                                       |
@@ -130,7 +131,9 @@ banho_tosa/
 | GET    | `/profissionais/novo` | Cadastro de novo profissional                             |
 
 > O frontend consome a API do backend em `/api/v1`, conforme implementado em `src/services/api.ts`.
-> No frontend, as rotas protegidas são validadas pelo middleware em `src/middleware.ts` e redirecionam para `/login` quando o usuário não está autenticado.
+> No frontend, as rotas protegidas são validadas pelo proxy em `src/proxy.ts` (convenção do Next.js 16, que substituiu o `middleware.ts`) e redirecionam para `/login` quando o usuário não está autenticado.
+>
+> Regras de negócio (duração RN-01, conflitos RN-02, transições de status) ficam **somente no backend**: o frontend envia a intenção e exibe o resultado ou o erro devolvido pela API.
 
 ## 💻 Setup — Ambiente de Desenvolvimento
 

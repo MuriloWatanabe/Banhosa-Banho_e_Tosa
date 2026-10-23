@@ -8,9 +8,10 @@
  * @notes
  * - ROTEAMENTO VISUAL: O componente reage à rota ativa (usePathname) para exibir o 
  *   título amigável da página.
- * - SEGURANÇA (Logout): O logout ocorre apagando o cookie "banhosa_auth" e forçando o 
- *   redirecionamento. Como o middleware (proxy.ts) confia neste cookie para proteger as rotas, 
- *   uma falha aqui deixaria o usuário "preso" em estado de autenticação.
+ * - SEGURANÇA (Logout): O cookie do JWT (`banhosa_token`) é httpOnly, então o logout chama a
+ *   Server Action `logoutAction` (que apaga o cookie no servidor) e então redireciona.
+ *   Como o proxy.ts confia neste cookie para proteger as rotas, uma falha aqui deixaria o
+ *   usuário "preso" em estado de autenticação.
  */
 
 import { describe, expect, it, vi, beforeEach } from 'vitest';
@@ -22,10 +23,16 @@ import { Topbar } from '@/components/Topbar';
 // SETUP & MOCKS
 // =============================================================================
 
-const { usePathnameMock, useRouterMock, pushMock } = vi.hoisted(() => ({
+const { usePathnameMock, useRouterMock, pushMock, refreshMock, logoutActionMock } = vi.hoisted(() => ({
     usePathnameMock: vi.fn(),
     pushMock: vi.fn(),
+    refreshMock: vi.fn(),
     useRouterMock: vi.fn(),
+    logoutActionMock: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/app/actions', () => ({
+    logoutAction: logoutActionMock,
 }));
 
 /**
@@ -46,11 +53,9 @@ describe('UI | Topbar', () => {
     
     beforeEach(() => {
         pushMock.mockClear();
-        useRouterMock.mockReturnValue({ push: pushMock });
-        
-        // Limpeza de estado isolado: 
-        // Garante que cada teste começa sem cookies residuais do teste anterior.
-        document.cookie = 'banhosa_auth=; path=/; max-age=0';
+        refreshMock.mockClear();
+        logoutActionMock.mockClear();
+        useRouterMock.mockReturnValue({ push: pushMock, refresh: refreshMock });
     });
 
     it('deve exibir o título mapeado para uma rota conhecida', () => {
@@ -64,6 +69,14 @@ describe('UI | Topbar', () => {
         expect(screen.getByRole('heading', { name: 'Pets' })).toBeInTheDocument();
     });
 
+    it('deve herdar o título da seção em sub-rotas (ex.: edição de agendamento)', () => {
+        usePathnameMock.mockReturnValue('/agendamentos/a-1/editar');
+
+        render(<Topbar />);
+
+        expect(screen.getByRole('heading', { name: 'Agendamentos' })).toBeInTheDocument();
+    });
+
     it('deve exibir o título padrão quando a rota não estiver no mapa de títulos', () => {
         // 1. Arrange
         usePathnameMock.mockReturnValue('/rota-desconhecida');
@@ -75,10 +88,9 @@ describe('UI | Topbar', () => {
         expect(screen.getByRole('heading', { name: 'Banhosa Baso' })).toBeInTheDocument();
     });
 
-    it('deve apagar o cookie de autenticação e redirecionar para /login ao clicar em "Sair"', async () => {
+    it('deve encerrar a sessão via Server Action e redirecionar para /login ao clicar em "Sair"', async () => {
         // 1. Arrange
         usePathnameMock.mockReturnValue('/dashboard');
-        document.cookie = 'banhosa_auth=1; path=/'; // Simula sessão ativa
         const user = userEvent.setup();
         render(<Topbar />);
 
@@ -86,11 +98,8 @@ describe('UI | Topbar', () => {
         await user.click(screen.getByTitle('Sair'));
 
         // 3. Assert
-        // O cookie deve ter sido expirado (max-age=0), então não deve mais
-        // aparecer na lista de cookies ativos do documento.
-        expect(document.cookie).not.toContain('banhosa_auth=1');
-        
-        expect(pushMock).toHaveBeenCalledWith('/login');
+        await vi.waitFor(() => expect(pushMock).toHaveBeenCalledWith('/login'));
+        expect(logoutActionMock).toHaveBeenCalledTimes(1);
         expect(pushMock).toHaveBeenCalledTimes(1);
     });
 });

@@ -1,16 +1,15 @@
 /**
  * @file UI & Regra de Negócio: NovoAgendamentoForm
- * @description Garante a correta renderização do formulário, os estados de bloqueio 
- * por falta de dependências e a aplicação visual da regra de cálculo de duração.
- * 
+ * @description Garante a correta renderização do formulário, os estados de bloqueio
+ * por falta de dependências e o payload enviado para a Server Action.
+ *
  * @type {Teste de Componente / UI}
- * 
+ *
  * @notes
- * - REGRA DE NEGÓCIO (RN-01): Porte Grande/Gigante = dobro do tempo de atendimento.
- * - INTEGRAÇÃO REAL: Intencionalmente NÃO mockamos `@/utils/appointment` aqui. 
- *   Queremos a função de cálculo real rodando para garantir que a tela mostre 
- *   exatamente o que a regra determina para o usuário final antes da confirmação.
- * - ESTADOS DE BLOQUEIO: O formulário exige listas populadas de pets e profissionais 
+ * - REGRA DE NEGÓCIO (RN-01): O frontend NÃO calcula mais a duração. Ela é calculada
+ *   pelo backend e exibida a partir da resposta da API. Estes testes garantem que nenhum
+ *   valor de duração é enviado pelo cliente e que a tela mostra o valor devolvido.
+ * - ESTADOS DE BLOQUEIO: O formulário exige listas populadas de pets e profissionais
  *   para funcionar.
  */
 
@@ -24,14 +23,16 @@ import type { Pet, Professional } from '@/types';
 // SETUP & MOCKS
 // =============================================================================
 
-const { createAppointmentActionMock, pushMock, refreshMock } = vi.hoisted(() => ({
-    createAppointmentActionMock: vi.fn().mockResolvedValue({ id: 'a-1' }),
+const { createAppointmentActionMock, updateAppointmentActionMock, pushMock, refreshMock } = vi.hoisted(() => ({
+    createAppointmentActionMock: vi.fn(),
+    updateAppointmentActionMock: vi.fn(),
     pushMock: vi.fn(),
     refreshMock: vi.fn(),
 }));
 
 vi.mock('@/app/actions', () => ({
     createAppointmentAction: createAppointmentActionMock,
+    updateAppointmentAction: updateAppointmentActionMock,
 }));
 
 vi.mock('next/navigation', () => ({
@@ -74,9 +75,7 @@ const professional: Professional = {
 
 /**
  * Lê as linhas do card de resumo pelo DOM.
- * Rótulos do formulário e do resumo compartilham os mesmos textos ("Serviço", "Profissional"), 
- * o que gera ambiguidade no Testing Library. Por isso, localizamos pela ORDEM fixa das 
- * linhas no JSX: [0: Pet, 1: Porte, 2: Serviço, 3: Duração, 4: Profissional].
+ * Ordem fixa no JSX: [0: Pet, 1: Porte, 2: Serviço, 3: Duração, 4: Profissional].
  */
 function getSummaryRows(container: HTMLElement) {
     return container.querySelectorAll('.summary-card .summary-row');
@@ -87,22 +86,18 @@ function getSummaryRows(container: HTMLElement) {
 // =============================================================================
 
 describe('UI | NovoAgendamentoForm — Estados Vazios', () => {
-    
+
     it('deve bloquear o formulário e orientar o cadastro quando não há pets', () => {
-        // 1. Arrange & Act
         render(<NovoAgendamentoForm pets={[]} professionals={[professional]} />);
 
-        // 2. Assert
         expect(screen.getByText(/Nenhum pet cadastrado ainda\./)).toBeInTheDocument();
         expect(screen.queryByText(/Nenhum profissional cadastrado ainda\./)).not.toBeInTheDocument();
         expect(screen.getByRole('link', { name: /Novo pet/ })).toHaveAttribute('href', '/pets/novo');
     });
 
     it('deve bloquear o formulário e orientar o cadastro quando não há profissionais', () => {
-        // 1. Arrange & Act
         render(<NovoAgendamentoForm pets={[petPequeno]} professionals={[]} />);
 
-        // 2. Assert
         expect(screen.getByText(/Nenhum profissional cadastrado ainda\./)).toBeInTheDocument();
         expect(screen.queryByText(/Nenhum pet cadastrado ainda\./)).not.toBeInTheDocument();
         expect(screen.getByRole('link', { name: /Novo profissional/ })).toHaveAttribute(
@@ -112,96 +107,78 @@ describe('UI | NovoAgendamentoForm — Estados Vazios', () => {
     });
 
     it('deve mostrar ambas as orientações quando faltam pets E profissionais', () => {
-        // 1. Arrange & Act
         render(<NovoAgendamentoForm pets={[]} professionals={[]} />);
 
-        // 2. Assert
         expect(screen.getByText(/Nenhum pet cadastrado ainda\./)).toBeInTheDocument();
         expect(screen.getByText(/Nenhum profissional cadastrado ainda\./)).toBeInTheDocument();
     });
 });
 
 // =============================================================================
-// SUÍTE DE TESTES: REGRA DE NEGÓCIO RN-01 (CÁLCULO DE DURAÇÃO)
+// SUÍTE DE TESTES: DURAÇÃO CALCULADA PELO BACKEND (RN-01)
 // =============================================================================
 
-describe('UI | NovoAgendamentoForm — Regra RN-01 (Duração por Porte)', () => {
-    
+describe('UI | NovoAgendamentoForm — Duração (RN-01 no backend)', () => {
+
     beforeEach(() => {
-        createAppointmentActionMock.mockClear();
+        createAppointmentActionMock.mockReset();
         refreshMock.mockClear();
     });
 
-    it('deve exibir a duração-base (sem dobrar) para um pet de porte Pequeno no serviço padrão "Banho" (60min)', () => {
-        // 1. Arrange & Act
-        const { container } = render(
-            <NovoAgendamentoForm pets={[petPequeno, petGrande]} professionals={[professional]} />
-        );
-
-        // 2. Assert
-        const durationRow = getSummaryRows(container)[3];
-        expect(durationRow).toHaveTextContent('1h'); // 60min, sem multiplicador
-    });
-
-    it('deve DOBRAR a duração exibida ao trocar para um pet de porte Grande', async () => {
-        // 1. Arrange
+    it('não deve estimar a duração no cliente, mesmo para porte Grande', async () => {
         const user = userEvent.setup();
         const { container } = render(
             <NovoAgendamentoForm pets={[petPequeno, petGrande]} professionals={[professional]} />
         );
 
-        // 2. Act
-        await user.selectOptions(screen.getByLabelText('Pet'), 'p-2'); // Seleciona Thor, porte Grande
+        await user.selectOptions(screen.getByLabelText('Pet'), 'p-2');
 
-        // 3. Assert
-        // Serviço padrão "Banho" = 60min-base; porte Grande -> 60 * 2 = 120min = "2h".
         const durationRow = getSummaryRows(container)[3];
-        expect(durationRow).toHaveTextContent('2h');
-
-        const sizeRow = getSummaryRows(container)[1];
-        expect(sizeRow).toHaveTextContent('Grande');
+        expect(durationRow).toHaveTextContent('Calculada ao salvar');
+        expect(getSummaryRows(container)[1]).toHaveTextContent('Grande');
     });
 
-    it('deve recalcular a duração ao trocar de serviço, respeitando o porte já selecionado', async () => {
-        // 1. Arrange
-        const user = userEvent.setup();
-        const { container } = render(
-            <NovoAgendamentoForm pets={[petGrande]} professionals={[professional]} />
-        );
-
-        // 2. Act
-        // Pet único cadastrado (Thor, Grande) já vem selecionado por padrão.
-        await user.selectOptions(screen.getByLabelText('Serviço'), 'Tosa higiênica'); // base 45min
-
-        // 3. Assert
-        // 45min-base * 2 (porte Grande) = 90min = "1h 30min".
-        const durationRow = getSummaryRows(container)[3];
-        expect(durationRow).toHaveTextContent('1h 30min');
-    });
-
-    it('deve enviar a duração já calculada (durationMinutes) com a regra RN-01 aplicada para a Server Action', async () => {
-        // 1. Arrange
+    it('deve enviar apenas IDs e a intenção do agendamento, sem duração', async () => {
+        createAppointmentActionMock.mockResolvedValue({ data: { id: 'a-1', durationMinutes: 120 } });
         const user = userEvent.setup();
         render(<NovoAgendamentoForm pets={[petGrande]} professionals={[professional]} />);
 
-        // 2. Act
+        await user.clear(screen.getByLabelText('Data'));
+        await user.type(screen.getByLabelText('Data'), '2030-01-15');
         await user.click(screen.getByRole('button', { name: /Criar agendamento/ }));
 
-        // 3. Assert
         expect(createAppointmentActionMock).toHaveBeenCalledTimes(1);
-        
         const payload = createAppointmentActionMock.mock.calls[0][0];
-        expect(payload).toMatchObject({
-            petName: 'Thor',
-            tutorName: 'Bruno Lima',
+        expect(payload).toEqual({
+            pet_id: 'p-2',
+            profissional_id: 'prof-1',
             service: 'Banho',
-            size: 'Grande',
-            professionalName: 'Carla Dias',
-            durationMinutes: 120, // 60min-base * 2 pelo porte Grande
+            date: '2030-01-15',
+            start_time: '09:00',
             status: 'Pendente',
         });
+        expect(payload).not.toHaveProperty('durationMinutes');
+    });
 
-        expect(await screen.findByText('Agendamento criado com sucesso.')).toBeInTheDocument();
+    it('deve exibir a duração devolvida pela API após criar o agendamento', async () => {
+        createAppointmentActionMock.mockResolvedValue({ data: { id: 'a-1', durationMinutes: 120 } });
+        const user = userEvent.setup();
+        render(<NovoAgendamentoForm pets={[petGrande]} professionals={[professional]} />);
+
+        await user.click(screen.getByRole('button', { name: /Criar agendamento/ }));
+
+        expect(await screen.findByText('Agendamento criado com sucesso. Duração calculada: 2h.')).toBeInTheDocument();
         expect(refreshMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('deve exibir o erro de regra de negócio retornado pela API (ex.: conflito RN-02)', async () => {
+        createAppointmentActionMock.mockResolvedValue({ error: 'Conflito de horário: o profissional já possui um agendamento.' });
+        const user = userEvent.setup();
+        render(<NovoAgendamentoForm pets={[petGrande]} professionals={[professional]} />);
+
+        await user.click(screen.getByRole('button', { name: /Criar agendamento/ }));
+
+        expect(await screen.findByRole('alert')).toHaveTextContent('Conflito de horário');
+        expect(refreshMock).not.toHaveBeenCalled();
     });
 });

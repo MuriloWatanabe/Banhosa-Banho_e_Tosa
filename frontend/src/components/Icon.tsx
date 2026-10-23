@@ -1,6 +1,6 @@
 import React from 'react';
 
-type Props = { name: 'dashboard' | 'calendar' | 'pets' | 'users' | 'staff' | 'plus' | 'search' | 'bell' | 'chevron' | 'clock' | 'check' | 'paw' | 'trash' };
+type Props = { name: 'dashboard' | 'calendar' | 'pets' | 'users' | 'staff' | 'plus' | 'search' | 'bell' | 'chevron' | 'clock' | 'check' | 'paw' | 'trash' | 'edit' };
 
 export function Icon({ name }: Props) {
   const common = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
@@ -17,6 +17,7 @@ export function Icon({ name }: Props) {
     case 'clock': return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>;
     case 'check': return <svg {...common}><path d="m5 12 4 4L19 6"/></svg>;
     case 'paw': return <svg {...common}><path d="M12 16.5c2.3 0 4.5 1.4 4.5 3.5 0 .8-.7 1.5-1.5 1.5H9c-.8 0-1.5-.7-1.5-1.5 0-2.1 2.2-3.5 4.5-3.5Z"/><circle cx="6.5" cy="11" r="1.6"/><circle cx="17.5" cy="11" r="1.6"/><circle cx="9" cy="7" r="1.6"/><circle cx="15" cy="7" r="1.6"/></svg>;
+    case 'edit': return <svg {...common}><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>;
     case 'trash': return <svg {...common}><path d="M4 7h16"/><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7"/><path d="M6 7l1 13a2 2 0 0 0 2 1.9h6a2 2 0 0 0 2-1.9l1-13"/><path d="M10 11v6M14 11v6"/></svg>;
   }
 }

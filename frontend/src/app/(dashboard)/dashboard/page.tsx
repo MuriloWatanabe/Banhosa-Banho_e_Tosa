@@ -3,6 +3,7 @@ import { getDashboardData } from '@/services/api';
 import { Icon } from '@/components/Icon';
 import { StatCard } from '@/components/StatCard';
 import { SectionHeader } from '@/components/SectionHeader';
+import { statusPillColor, toTimeInputValue } from '@/utils/appointment';
 
 function formatToday() {
   const formatted = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -82,7 +83,7 @@ export default async function DashboardPage() {
                 {data.appointments.map((a) => (
                   <tr key={a.id}>
                     <td>
-                      <strong>{a.startTime}</strong>
+                      <strong>{toTimeInputValue(a.startTime)}</strong>
                     </td>
 
                     <td>
@@ -101,9 +102,7 @@ export default async function DashboardPage() {
 
                     <td>
                       <span
-                        className={`pill ${
-                          a.status === 'Confirmado' ? 'green' : 'amber'
-                        }`}
+                        className={`pill ${statusPillColor(a.status)}`}
                       >
                         {a.status}
                       </span>

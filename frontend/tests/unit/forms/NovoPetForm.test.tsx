@@ -24,7 +24,7 @@ import type { Tutor } from '@/types';
 // =============================================================================
 
 const { createPetActionMock, pushMock, refreshMock } = vi.hoisted(() => ({
-  createPetActionMock: vi.fn().mockResolvedValue({ id: 'p-1' }),
+  createPetActionMock: vi.fn().mockResolvedValue({ data: { id: 'p-1' } }),
   pushMock: vi.fn(),
   refreshMock: vi.fn(),
 }));
@@ -79,7 +79,7 @@ describe('UI | NovoPetForm', () => {
         
         // 2. Assert
         const tutorSelect = screen.getByLabelText('Tutor') as HTMLSelectElement;
-        expect(tutorSelect.value).toBe('Ana Souza');
+        expect(tutorSelect.value).toBe('t-1'); // o select envia o ID do tutor
     });
 
     it('deve atualizar o card de resumo em tempo real conforme o usuário digita', async () => {
@@ -135,13 +135,13 @@ describe('UI | NovoPetForm', () => {
         await user.click(screen.getByRole('button', { name: /Cadastrar pet/ }));
 
         // 3. Assert
-        // A Server Action deve receber o tipo Omit<Pet, 'id'> (id gerado no backend)
+        // A Server Action recebe PetCreateInput: o tutor é referenciado pelo ID
         expect(createPetActionMock).toHaveBeenCalledWith({
             name: 'Thor',
             species: 'Cão',
             breed: 'Golden Retriever',
             size: 'Grande',
-            tutorName: 'Bruno Lima',
+            tutor_id: 't-2',
         });
 
         // Valida reset do formulário (campos de texto limpos, selects mantidos) 

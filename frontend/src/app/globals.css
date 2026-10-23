@@ -45,6 +45,8 @@ button { cursor: pointer; }
 .icon-button-danger { width: 34px; height: 34px; border-radius: 9px; color: var(--danger); border-color: var(--danger-soft); background: var(--danger-soft); }
 .icon-button-danger:hover { background: #ffe1e1; }
 .icon-button-danger:disabled { opacity: .5; cursor: default; }
+.icon-button-sm { width: 34px; height: 34px; border-radius: 9px; }
+.icon-button-sm:hover { background: var(--primary-soft); }
 .entity-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
 .notification-dot { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); right: 7px; top: 7px; }
 .user-chip { border: 1px solid var(--line); border-radius: 12px; background: white; padding: 6px 10px 6px 7px; display: flex; align-items: center; gap: 9px; font: inherit; cursor: pointer; color: inherit; }
